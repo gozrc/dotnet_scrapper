@@ -79,7 +79,7 @@ namespace Scrapper.Web.Scrappers.Pelispedia
 
             try
             { 
-                while (HttpHelper.requestGet(URL_BASE + "api/more.php?rangeStart=" + index.ToString(), null, ref buffer, ref error))
+                while (HttpHelper.requestGet(URL_BASE + "api/morex.php?rangeStart=" + index.ToString(), null, ref buffer, ref error))
                 {
                     Regex rgx = new Regex("<li(.*?)</li>", RegexOptions.Singleline);
 
