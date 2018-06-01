@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.IO;
-using System.Text;
+using Commons.CustomHttpManager.Hacks;
 
 namespace Commons.CustomHttpManager
 {
@@ -14,76 +14,121 @@ namespace Commons.CustomHttpManager
 
     public class HttpManager
     {
-        public static bool request (string url, Method method, HttpHeaders headers, byte[] data, ref int codeResponse, ref string webResponse, ref string dataResponse, bool autoRedirect, ref string error)
+        public static bool request (
+            string          requestUrl, 
+            Method          requestMethod, 
+            HttpHeaders     requestHeaders, 
+            byte[]          requestData, 
+            ref int         responseCode, 
+            ref string      responseDescription, 
+            ref string      responseData,  
+            ref HttpHeaders responseHeaders,
+            bool            autoRedirect, 
+            bool            emuleUserAgent,
+            int             timeout,
+            ref string      error
+        )
         {
-            codeResponse = -1;
-            webResponse = string.Empty;
-            dataResponse = string.Empty;
+            responseCode         = -1;
+            responseDescription  = "Internal error";
+            responseData         = string.Empty;
 
             try
             {
-                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(url);
+                HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(requestUrl);
 
-                webRequest.Method = (method == Method.GET ? "GET" : (method == Method.POST ? "POST" : "HEAD"));
+                switch (requestMethod)
+                {
+                    case Method.GET:  webRequest.Method = "GET";  break;
+                    case Method.HEAD: webRequest.Method = "HEAD"; break;
+                    case Method.POST: webRequest.Method = "POST"; break;
+                }
+
                 webRequest.AllowAutoRedirect = autoRedirect;
-                webRequest.ReadWriteTimeout = 2000;
+                webRequest.ReadWriteTimeout  = timeout;
 
-                addHeaders (headers, ref webRequest);
+                if (emuleUserAgent)
+                    requestHeaders.Add(new HttpHeader("UserAgent", "Mozilla/5.0"));
 
-                webRequest.ContentLength = null != data ? data.Length : 0;
+                addHeaders (requestHeaders, ref webRequest);
 
-                if (method == Method.POST)
+                if (!requestHeaders.exist("ContentLenght"))
+                {
+                    if (requestData.Length > 0)
+                        webRequest.ContentLength = requestData.Length;
+                    else
+                        webRequest.ContentLength = 0;
+                }
+
+                if (requestMethod == Method.POST)
                 {
                     using (Stream st = webRequest.GetRequestStream())
                     {
-                        st.Write(data, 0, data.Length);
-                        st.Close();
+                        st.Write (requestData, 0, requestData.Length);
+                        st.Close ();
                     }
                 }
 
-                using (WebResponse wres = webRequest.GetResponse())
+                HttpWebResponse httpws = null;
+
+                try
                 {
-                    HttpWebResponse httpws = (HttpWebResponse)wres;
+                    httpws = (HttpWebResponse)webRequest.GetResponse();
+                }
+                catch (WebException wex)
+                {
+                    httpws = (HttpWebResponse)wex.Response;
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
 
-                    codeResponse = (int)httpws.StatusCode;
-                    webResponse = httpws.StatusDescription;
+                responseCode        = (int)httpws.StatusCode;
+                responseDescription = httpws.StatusDescription;
 
-                    if (autoRedirect)
+                using (StreamReader sr = new StreamReader(httpws.GetResponseStream()))
+                    responseData = sr.ReadToEnd().Trim();
+
+                parseHeaders(httpws.Headers, ref responseHeaders);
+
+                if (autoRedirect)
+                {
+                    if (httpws.StatusCode != HttpStatusCode.OK)
                     {
-                        if (httpws.StatusCode != HttpStatusCode.OK)
-                            throw new Exception(string.Format("Server error (HTTP {0}: {1})", (int)httpws.StatusCode, httpws.StatusDescription));
+                        throw new Exception(string.Format("Server error (HTTP {0}: {1})",
+                            (int)httpws.StatusCode, httpws.StatusDescription));
                     }
-                    else
+                }
+                else
+                {
+                    bool isRedirectResponse =
+                        httpws.StatusCode == (HttpStatusCode)301 ||
+                        httpws.StatusCode == (HttpStatusCode)302 ||
+                        httpws.StatusCode == (HttpStatusCode)303 ||
+                        httpws.StatusCode == (HttpStatusCode)307;
+
+                    if (httpws.StatusCode != HttpStatusCode.OK && !isRedirectResponse)
                     {
-                        if (httpws.StatusCode != HttpStatusCode.OK && httpws.StatusCode != (HttpStatusCode)302)
-                            throw new Exception(string.Format("Server error (HTTP {0}: {1})", (int)httpws.StatusCode, httpws.StatusDescription));
+                        throw new Exception(string.Format("Server error (HTTP {0}: {1})",
+                            (int)httpws.StatusCode, httpws.StatusDescription));
                     }
+                }
 
-                    using (StreamReader sr = new StreamReader(wres.GetResponseStream()))
-                        dataResponse = sr.ReadToEnd();
+                if (HackSucuri.checkSucuriProtection(responseData, responseHeaders))
+                {
+                    HackSucuri.addSucuriHeaders(responseData, ref requestHeaders);
 
-                    if (dataResponse.Length == 0)
-                    {
-                        if (!autoRedirect && codeResponse == 302)
-                        {
-                            if (httpws.Headers.Count > 0)
-                                if (httpws.Headers["Location"] != null)
-                                    dataResponse = httpws.Headers["Location"].ToString();
-                        }
-                        else
-                        {
-                            if (method == Method.HEAD)
-                            {
-                                dataResponse = httpws.Headers.ToString();
-                            }
-                        }
-
-                    }
+                    return request(
+                        requestUrl, requestMethod, requestHeaders, requestData, ref responseCode, 
+                        ref responseDescription, ref responseData, ref responseHeaders, 
+                        autoRedirect, emuleUserAgent, timeout, ref error
+                    );
                 }
             }
             catch (Exception ex)
             {
-                error = "HttpHelper.request -> " + ex.Message;
+                error = "HttpManager.request -> " + ex.Message;
             }
 
             return (0 == error.Length);
@@ -95,132 +140,116 @@ namespace Commons.CustomHttpManager
 
         static void addHeaders (HttpHeaders headers, ref HttpWebRequest webRequest)
         {
-            if (null != headers)
+            if (null == headers)
+                return;
+
+            foreach (HttpHeader h in headers)
             {
-                foreach (HttpHeader h in headers)
+                bool existe = false;
+
+                foreach (HttpRequestHeader e in Enum.GetValues(typeof(HttpRequestHeader)))
                 {
-                    bool existe = false;
-
-                    foreach (HttpRequestHeader e in Enum.GetValues(typeof(HttpRequestHeader)))
+                    if (e.ToString() == h.key)
                     {
-                        if (e.ToString() == h.key)
+                        switch (e)
                         {
-                            switch (e)
-                            {
-                                case HttpRequestHeader.Referer:
+                            case HttpRequestHeader.Referer:     webRequest.Referer      = h.value; existe = true; break;
+                            case HttpRequestHeader.ContentType: webRequest.ContentType  = h.value; existe = true; break;
+                            case HttpRequestHeader.UserAgent:   webRequest.UserAgent    = h.value; existe = true; break;
 
-                                    webRequest.Referer = h.value;
-                                    existe = true;
-                                    break;
 
-                                case HttpRequestHeader.ContentType:
+                            case HttpRequestHeader.Cookie:
 
-                                    webRequest.ContentType = h.value;
-                                    existe = true;
-                                    break;
+                                string[] cookies = h.value.Split(';');
 
-                                case HttpRequestHeader.UserAgent:
+                                webRequest.CookieContainer = new CookieContainer(cookies.Length);
 
-                                    webRequest.UserAgent = h.value;
-                                    existe = true;
-                                    break;
+                                foreach (string cookie in cookies)
+                                {
+                                    string name  = cookie.Split('=')[0];
+                                    string value = cookie.Split('=')[1];
 
-                                case HttpRequestHeader.Cookie:
+                                    if (value == "/") value = "";
 
-                                    string[] cookies = h.value.Split(';');
+                                    webRequest.CookieContainer.Add (new Cookie(name, value, "", webRequest.RequestUri.Host));
+                                }
 
-                                    webRequest.CookieContainer = new CookieContainer(cookies.Length);
-
-                                    foreach (string cookie in cookies)
-                                    {
-                                        string name = cookie.Split('=')[0];
-                                        string value = cookie.Split('=')[1];
-
-                                        if (value == "/") value = "";
-
-                                        webRequest.CookieContainer.Add(new Cookie(name, value, "", webRequest.RequestUri.Host));
-                                    }
-
-                                    existe = true;
-                                    break;
-                            }
-
-                            if (existe)
+                                existe = true;
                                 break;
                         }
+
+                        if (existe)
+                            break;
                     }
-
-                    if (!existe)
-                        webRequest.Headers.Add(h.key, h.value);
                 }
+
+                if (!existe)
+                    webRequest.Headers.Add (h.key, h.value);
             }
-
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        public static bool requestGet (string url, HttpHeaders headers, ref string dataResponse, ref string error)
+        static void parseHeaders (WebHeaderCollection whc, ref HttpHeaders responseHeaders)
         {
-            int     codeResponse = 0;
-            string  webResponse  = string.Empty;
+            responseHeaders = new HttpHeaders();
 
-            return request (url, Method.GET, headers, null, ref codeResponse, ref webResponse, ref dataResponse, true, ref error);
+            foreach (string key in whc.AllKeys)
+                responseHeaders.Add(new HttpHeader(key, whc[key].ToString()));
         }
 
-        public static bool requestGetSinReditect(string url, HttpHeaders headers, ref string dataResponse, ref string error)
-        {
-            int codeResponse = 0;
-            string webResponse = string.Empty;
 
-            return request(url, Method.GET, headers, null, ref codeResponse, ref webResponse, ref dataResponse, false, ref error);
-        }
 
-        public static bool requestPost (string url, HttpHeaders headers, string data, ref string dataResponse, ref string error)
-        {
-            int    codeResponse = 0;
-            string webResponse  = string.Empty;
 
-            return request(url, Method.POST, headers, Encoding.UTF8.GetBytes(data), ref codeResponse, ref webResponse, ref dataResponse, true, ref error);
-        }
 
-        public static bool requestHead (string url, HttpHeaders headers, ref string dataResponse, ref string error)
-        {
-            int    codeResponse = 0;
-            string webResponse  = string.Empty;
 
-            return request(url, Method.HEAD, headers, null, ref codeResponse, ref webResponse, ref dataResponse, false, ref error);
-        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //public static bool requestGet (string url, HttpHeaders headers, ref string dataResponse, ref string error)
+        //{
+        //    int     codeResponse = 0;
+        //    string  webResponse  = string.Empty;
+
+        //    return request (url, Method.GET, headers, null, ref codeResponse, ref webResponse, ref dataResponse, true, ref error);
+        //}
+
+        //public static bool requestGetSinReditect(string url, HttpHeaders headers, ref string dataResponse, ref string error)
+        //{
+        //    int codeResponse = 0;
+        //    string webResponse = string.Empty;
+
+        //    return request(url, Method.GET, headers, null, ref codeResponse, ref webResponse, ref dataResponse, false, ref error);
+        //}
+
+        //public static bool requestPost (string url, HttpHeaders headers, string data, ref string dataResponse, ref string error)
+        //{
+        //    int    codeResponse = 0;
+        //    string webResponse  = string.Empty;
+
+        //    return request(url, Method.POST, headers, Encoding.UTF8.GetBytes(data), ref codeResponse, ref webResponse, ref dataResponse, true, ref error);
+        //}
+
+        //public static bool requestHead (string url, HttpHeaders headers, ref string dataResponse, ref string error)
+        //{
+        //    int    codeResponse = 0;
+        //    string webResponse  = string.Empty;
+
+        //    return request(url, Method.HEAD, headers, null, ref codeResponse, ref webResponse, ref dataResponse, false, ref error);
+        //}
 
         
     }
-
 }
