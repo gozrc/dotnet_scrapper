@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.IO;
+using System.Text;
 using Commons.CustomHttpManager.Hacks;
 
 namespace Commons.CustomHttpManager
@@ -135,6 +136,37 @@ namespace Commons.CustomHttpManager
         }
 
 
+        public static bool requestGet (string requestUrl, HttpHeaders requestHeaders, ref string responseData, ref string error)
+        {
+            int         responseCode        = 0;
+            string      responseDescription = string.Empty;
+            HttpHeaders responseHeaders     = new HttpHeaders();
+
+            return request(requestUrl, Method.GET, requestHeaders, null, ref responseCode, 
+                ref responseDescription, ref responseData, ref responseHeaders, true, true, 2000, ref error);
+        }
+
+        public static bool requestGetSR (string requestUrl, HttpHeaders requestHeaders, ref string responseData, ref string error)
+        {
+            int         responseCode        = 0;
+            string      responseDescription = string.Empty;
+            HttpHeaders responseHeaders     = new HttpHeaders();
+
+            return request(requestUrl, Method.GET, requestHeaders, null, ref responseCode,
+                ref responseDescription, ref responseData, ref responseHeaders, false, true, 2000, ref error);
+        }
+
+        public static bool requestPost (string requestUrl, HttpHeaders requestHeaders, string requestData, ref string responseData, ref string error)
+        {
+            int         responseCode        = 0;
+            string      responseDescription = string.Empty;
+            HttpHeaders responseHeaders     = new HttpHeaders();
+
+            return request(requestUrl, Method.POST, requestHeaders, Encoding.UTF8.GetBytes(requestData), ref responseCode, 
+                ref responseDescription, ref responseData, ref responseHeaders, true, true, 2000, ref error);
+        }
+
+
 
 
 
@@ -218,29 +250,10 @@ namespace Commons.CustomHttpManager
 
 
 
-        //public static bool requestGet (string url, HttpHeaders headers, ref string dataResponse, ref string error)
-        //{
-        //    int     codeResponse = 0;
-        //    string  webResponse  = string.Empty;
 
-        //    return request (url, Method.GET, headers, null, ref codeResponse, ref webResponse, ref dataResponse, true, ref error);
-        //}
 
-        //public static bool requestGetSinReditect(string url, HttpHeaders headers, ref string dataResponse, ref string error)
-        //{
-        //    int codeResponse = 0;
-        //    string webResponse = string.Empty;
 
-        //    return request(url, Method.GET, headers, null, ref codeResponse, ref webResponse, ref dataResponse, false, ref error);
-        //}
 
-        //public static bool requestPost (string url, HttpHeaders headers, string data, ref string dataResponse, ref string error)
-        //{
-        //    int    codeResponse = 0;
-        //    string webResponse  = string.Empty;
-
-        //    return request(url, Method.POST, headers, Encoding.UTF8.GetBytes(data), ref codeResponse, ref webResponse, ref dataResponse, true, ref error);
-        //}
 
         //public static bool requestHead (string url, HttpHeaders headers, ref string dataResponse, ref string error)
         //{
