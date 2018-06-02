@@ -43,12 +43,39 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cryptography\AES.cs" />
+    <Compile Include="Entities\Episode.cs" />
+    <Compile Include="Entities\Episodes.cs" />
+    <Compile Include="Entities\Movie.cs" />
+    <Compile Include="Entities\Movies.cs" />
+    <Compile Include="Entities\Season.cs" />
+    <Compile Include="Entities\Seasons.cs" />
+    <Compile Include="Entities\Serie.cs" />
+    <Compile Include="Entities\Series.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scrappers\IWebScrapper.cs" />
+    <Compile Include="Servers\IServerScrapper.cs" />
+    <Compile Include="Servers\ServerFactory.cs" />
+    <Compile Include="Servers\ServerScrapper.cs" />
+    <Compile Include="Servers\ServerScrapperHtml5Pelispedia.cs" />
+    <Compile Include="Servers\ServerScrapperOpenload.cs" />
+    <Compile Include="Servers\ServerScrapperRapidvideo.cs" />
+    <Compile Include="Servers\ServerScrapperStreamango.cs" />
+    <Compile Include="Servers\ServerScrapperVidoza.cs" />
+    <Compile Include="Servers\Source.cs" />
+    <Compile Include="Servers\Sources.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Commons\Commons.csproj">
+      <Project>{8e9b9c58-a943-473b-8feb-9c3721f88e33}</Project>
+      <Name>Commons</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

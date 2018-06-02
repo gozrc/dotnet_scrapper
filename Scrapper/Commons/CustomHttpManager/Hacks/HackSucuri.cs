@@ -7,12 +7,18 @@ namespace Commons.CustomHttpManager.Hacks
 {
     public class HackSucuri
     {
-        public static bool checkSucuriProtection (string response)
+        public static bool checkSucuriProtection (string responseData, HttpHeaders responseHeaders)
         {
-            return true;
+            if (responseHeaders.exist("Server"))
+            {
+                if (responseHeaders.value("Server") == "Sucuri/Cloudproxy")
+                    return responseData.StartsWith("<html><title>You are being redirected...</title>");
+            }
+
+            return false;
         }
 
-        public static bool addSucuriHeaders (string jsCrypt, ref HttpHeaders headers, ref string error)
+        public static void addSucuriHeaders (string jsCrypt, ref HttpHeaders headers)
         {
             try
             {
@@ -43,10 +49,8 @@ namespace Commons.CustomHttpManager.Hacks
             }
             catch (Exception ex)
             {
-                error = "HackSucuri.addSucuriHeaders -> " + ex.Message;
+                throw new Exception("HackSucuri.addSucuriHeaders -> " + ex.Message);
             }
-
-            return (0 == error.Length);
         }
 
 

@@ -12,5 +12,10 @@ namespace Commons.CustomHttpManager
             this.key   = key;
             this.value = value;
         }
+
+        public override string ToString()
+        {
+            return key + ": " + value;
+        }
     }
 }
