@@ -84,7 +84,37 @@ namespace WebScrapper.Scrappers.Pelispedia
             {
                 foreach (string source in sources)
                 {
-                    if (!ServerScrapper.scrap(source, ref movie.sources, ref error))
+                    error = string.Empty;
+
+                    if(!HttpManager.requestGet(source, null, ref buffer, ref error))
+                    {
+                        error = "ScrapPelispedia.getMovieSources -> " + error;
+                        log(error);
+                        continue;
+                    }
+
+                    if (!PelispediaHelper.getCode(buffer, ref codigo, ref error))
+                    {
+                        error = "ScrapPelispedia.getMovieSources -> " + error;
+                        log(error);
+                        continue;
+                    }
+
+                    if (!PelispediaHelper.decryptUrl(source, codigo, ref urlAux, ref error))
+                    {
+                        error = "ScrapPelispedia.getMovieSources -> " + error;
+                        log(error);
+                        continue;
+                    }
+
+                    if (!HttpManager.requestGet(urlAux, null, ref buffer, ref error))
+                    {
+                        error = "ScrapPelispedia.getMovieSources -> " + error;
+                        log(error);
+                        continue;
+                    }
+
+                    if (!ServerScrapper.scrap(urlAux, ref movie.sources, ref error))
                     {
                         error = "ScrapPelispedia.getMovieSources -> " + error;
                         log(error);

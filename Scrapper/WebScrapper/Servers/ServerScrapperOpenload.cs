@@ -100,6 +100,8 @@ namespace WebScrapper.Servers
 
                 Regex rgx = new Regex("<span.+</span>", RegexOptions.Singleline);
 
+                // aca buscar ">window.fileid="TO4fqkfjp80""
+
                 if (!rgx.IsMatch(buffer))
                     throw new Exception("No se encontró el link del video (url = " + url + ")");
 

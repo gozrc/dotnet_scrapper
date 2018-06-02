@@ -107,8 +107,10 @@ namespace WebScrapper.Scrappers.Pelispedia
 
         public static bool decryptUrl (string urlBase, string codigo, ref string url, ref string error)
         {
-            url = urlBase.Replace("embed", "stream") + "/"
-                + (new HelperAES()).OpenSSLEncrypt2(codigo, "_KeyCryptBlock");
+            url = 
+                urlBase.Replace("embed", "stream") + 
+                "/" + 
+                (new HelperAES()).OpenSSLEncrypt2(codigo, "4fe554b59d760c9986c903b07af8b7a4yt4fe554b59d760c9986c903b07af8b7a4785446346");
 
             return true;
         }
