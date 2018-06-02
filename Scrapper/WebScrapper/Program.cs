@@ -4,28 +4,39 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Commons.CustomHttpManager;
+using WebScrapper.Entities;
+using WebScrapper.Scrappers;
+using WebScrapper.Scrappers.Pelispedia;
 
 namespace WebScrapper
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main (string[] args)
         {
-            string error = string.Empty;
-            string requestUrl = "https://www.pelispedia.tv/pelicula/perturbada/";
-            HttpHeaders requestHeaders = new HttpHeaders();
-            byte[] requestData = new byte[0];
+            IWebScrapper scrapper = new ScrapPelispedia();
 
-            int responseCode = 0;
-            string responseDescription = string.Empty;
-            string responseData = string.Empty;
-            HttpHeaders responseHeaders = new HttpHeaders();
+            Movies movies = scrapper.scrapMovies();
+
+            Console.WriteLine (movies[0].title);
 
 
-            if (HttpManager.request(requestUrl, Method.GET, requestHeaders, requestData, ref responseCode, ref responseDescription, ref responseData, ref responseHeaders, true, true, 2000, ref error))
-                Console.WriteLine("OK");
-            else
-                Console.WriteLine("Error: " + error);
+
+            //string error = string.Empty;
+            //string requestUrl = "https://www.pelispedia.tv/pelicula/perturbada/";
+            //HttpHeaders requestHeaders = new HttpHeaders();
+            //byte[] requestData = new byte[0];
+
+            //int responseCode = 0;
+            //string responseDescription = string.Empty;
+            //string responseData = string.Empty;
+            //HttpHeaders responseHeaders = new HttpHeaders();
+
+
+            //if (HttpManager.request(requestUrl, Method.GET, requestHeaders, requestData, ref responseCode, ref responseDescription, ref responseData, ref responseHeaders, true, true, 2000, ref error))
+            //    Console.WriteLine("OK");
+            //else
+            //    Console.WriteLine("Error: " + error);
 
             Console.ReadKey();
         }

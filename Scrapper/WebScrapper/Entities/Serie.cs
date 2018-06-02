@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WebScrappers.Entities
+namespace WebScrapper.Entities
 {
     [Serializable]
     public class Serie

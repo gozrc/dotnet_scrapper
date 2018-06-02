@@ -1,7 +1,7 @@
 ﻿using System;
 using WebScrapper.Servers;
 
-namespace WebScrappers.Entities
+namespace WebScrapper.Entities
 {
     [Serializable]
     public class Movie

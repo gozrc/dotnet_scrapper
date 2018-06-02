@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using WebScrapper.Entities;
 
 namespace WebScrapper.Scrappers
 {
-    class IWebScrapper
+    public abstract class IWebScrapper
     {
+        public abstract Movies scrapMovies ();
+        public abstract Series scrapSeries ();
     }
 }

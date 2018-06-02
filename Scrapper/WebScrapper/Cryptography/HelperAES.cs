@@ -6,7 +6,7 @@ using System.IO;
 
 namespace WebScrapper.Cryptography
 {
-    class AES
+    class HelperAES
     {
         public string OpenSSLEncrypt2 (string plainText, string passphrase)
         {

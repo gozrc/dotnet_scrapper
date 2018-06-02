@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace WebScrappers.Entities
+namespace WebScrapper.Entities
 {
     [Serializable]
     public class Episodes : List<Episode>

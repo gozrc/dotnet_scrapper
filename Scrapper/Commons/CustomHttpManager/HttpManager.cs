@@ -48,21 +48,24 @@ namespace Commons.CustomHttpManager
                 webRequest.AllowAutoRedirect = autoRedirect;
                 webRequest.ReadWriteTimeout  = timeout;
 
+                if (null == requestHeaders)
+                    requestHeaders = new HttpHeaders();
+
                 if (emuleUserAgent)
                     requestHeaders.Add(new HttpHeader("UserAgent", "Mozilla/5.0"));
 
                 addHeaders (requestHeaders, ref webRequest);
 
-                if (!requestHeaders.exist("ContentLenght"))
-                {
-                    if (requestData.Length > 0)
-                        webRequest.ContentLength = requestData.Length;
-                    else
-                        webRequest.ContentLength = 0;
-                }
-
                 if (requestMethod == Method.POST)
                 {
+                    if (!requestHeaders.exist("ContentLenght"))
+                    {
+                        if (null != requestData)
+                            webRequest.ContentLength = requestData.Length;
+                        else
+                            webRequest.ContentLength = 0;
+                    }
+
                     using (Stream st = webRequest.GetRequestStream())
                     {
                         st.Write (requestData, 0, requestData.Length);

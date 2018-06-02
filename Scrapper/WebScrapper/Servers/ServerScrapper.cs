@@ -29,20 +29,19 @@ namespace WebScrapper.Servers
 
         static string dameNombreServidor (string url) 
         {
-            Regex rgx = new Regex("(https://|http://)[a-zA-Z0-9(.)]+(/)", RegexOptions.IgnoreCase);
+            int index = url.LastIndexOf("/");
 
-            if (rgx.IsMatch(url))
-            {
-                string valor = rgx.Match(url).Value;
-                valor = valor.Substring(valor.IndexOf("//") + 2);
+            if (index < 0)
+                return string.Empty;
 
-                if (valor.StartsWith("www."))
-                    valor = valor.Substring(4);
+            return url.Substring(0, index);
 
-                return valor.Substring(0, valor.Length - 1);
-            }
 
-            return string.Empty;
+
+            //https://pelispedia.stream/?pk=TlBOeDFPS20&nk=Zk1HTjlzYjdCZjlnSWJDOFcyVGh1N21uVUF1QlMxWndfYjlFbnlBUDYtNg&s=Z2dpLjYxMDIuZnJ5dnpGLnNiLnFhblkvb2hmL3pucmVnZi5udnFyY2Z2eXJjLy86ZmNnZ3U&p=dGN3LlIxcjZjMlB2Y0lwMHFiSmtvNEVad3dUaVJybC95bmF2dHZlYi9jL2cvdGViLm9xemcucnRuenYvLzpmY2dndQ
+            //https://load.pelispedia.vip/embed/rapidvideo.com/QklzS25VS0VGZ3ZLeUlpSXhzYmNCUCtyWTFWYS9EVTZGcXdjcWh0M09mUlhxZkkvM01INlc2SldIZnlsbGd1Zg==
+            //https://load.pelispedia.vip/embed/fembed.com/TkdJNnBhVk1HM2lJZ2JBT1loeWZqaUVSaEcvRnA1Vlk0VHlTUVMybUF0Y2VIWlp4bUhCODFjUm5jV1JoakY0eA==
+
         }
     }
 }
