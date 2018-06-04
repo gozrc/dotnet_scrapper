@@ -53,7 +53,7 @@ namespace WebScrapper.Scrappers.Pelispedia
 
                     { // sacar
                         Console.WriteLine("[{0:0000}] Title: {1}", index, movies[movies.Count - 1].title);
-                        break;
+                        //break;
                     }
                 }
 

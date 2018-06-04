@@ -46,7 +46,7 @@ namespace WebScrapper.Servers
             }
 
             if (error.Length > 0)
-                error = "ServerScrapperRapidvideo.scrappear -> " + error;
+                error = "scrappear -> " + error;
 
             return (0 == error.Length);
         }
@@ -70,7 +70,7 @@ namespace WebScrapper.Servers
             }
 
             if (error.Length > 0)
-                error = "ServerScrapperRapidvideo.obtenerUrlsVideos -> " + error;
+                error = "obtenerUrlsVideos -> " + error;
 
             return (0 == error.Length);
         }
@@ -106,7 +106,7 @@ namespace WebScrapper.Servers
             }
 
             if (error.Length > 0)
-                error = "ServerScrapperRapidvideo.obtenerUrlVideoSubs -> " + error;
+                error = "obtenerUrlVideoSubs -> " + error;
 
             return (0 == error.Length);
         }
@@ -128,7 +128,7 @@ namespace WebScrapper.Servers
             }
 
             if (error.Length > 0)
-                error = "ServerScrapperRapidvideo.obtenerUrlThumb -> " + error;
+                error = "obtenerUrlThumb -> " + error;
 
             return (0 == error.Length);
         }

@@ -35,7 +35,7 @@ namespace WebScrapper.Servers
                     serverLinks.Add(new Source(urlVideo, urlSubs, "Default", name(), urlThumb));
 
             if (error.Length > 0)
-                error = "ServerScrapperStreamango.scrappear -> " + error;
+                error = "scrappear -> " + error;
 
             return (0 == error.Length);
         }
@@ -60,7 +60,7 @@ namespace WebScrapper.Servers
             }
 
             if (error.Length > 0)
-                error = "ServerScrapperStreamango.obtenerUrlSubs -> " + error;
+                error = "obtenerUrlSubs -> " + error;
 
             return (0 == error.Length);
         }
@@ -92,7 +92,7 @@ namespace WebScrapper.Servers
             }
 
             if (error.Length > 0)
-                error = "ServerScrapperStreamango.obtenerUrlVideo -> " + error;
+                error = "obtenerUrlVideo -> " + error;
 
             return (0 == error.Length);
         }
@@ -114,7 +114,7 @@ namespace WebScrapper.Servers
             }
 
             if (error.Length > 0)
-                error = "ServerScrapperStreamango.obtenerUrlThumb -> " + error;
+                error = "obtenerUrlThumb -> " + error;
 
             return (0 == error.Length);
         }
