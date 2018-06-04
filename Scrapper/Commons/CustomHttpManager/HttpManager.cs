@@ -159,6 +159,15 @@ namespace Commons.CustomHttpManager
                 ref responseDescription, ref responseData, ref responseHeaders, false, true, 2000, ref error);
         }
 
+        public static bool requestGetSR (string requestUrl, HttpHeaders requestHeaders, ref string responseData, ref HttpHeaders responseHeaders, ref string error)
+        {
+            int         responseCode        = 0;
+            string      responseDescription = string.Empty;
+
+            return request(requestUrl, Method.GET, requestHeaders, null, ref responseCode,
+                ref responseDescription, ref responseData, ref responseHeaders, false, true, 2000, ref error);
+        }
+
         public static bool requestPost (string requestUrl, HttpHeaders requestHeaders, string requestData, ref string responseData, ref string error)
         {
             int         responseCode        = 0;

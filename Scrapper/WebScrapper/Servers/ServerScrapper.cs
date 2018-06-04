@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Text.RegularExpressions;
 
 namespace WebScrapper.Servers
 {
@@ -7,34 +8,38 @@ namespace WebScrapper.Servers
     {
         public static bool scrap (string url, ref Sources sources, ref string error)
         {
-            string nombreServidor = dameNombreServidor(url);
+            string serverName = getServerName(url);
 
-            IServerScrapper scrapper = ServerFactory.dameScrapper(nombreServidor);
+            IServerScrapper scrapper = ServerFactory.dameScrapper(serverName);
 
-            if (null == scrapper)
-            {
-                error = "Servidor desconocido (url = " + url + ")";
-            }
-            else
-            {
-                scrapper.scrappear(url, ref sources, ref error);
-            }
+            if (0 == error.Length)
+                if (null == scrapper)
+                    error = "Server unknow (name = " + serverName + ")";
 
-            if (error.Length > 0)
-                error = "ServerScrapper.scrap -> " + error;
+            if (0 == error.Length)
+                if (!scrapper.scrappear(url, ref sources, ref error))
+                    error = "[" + scrapper.name() + "] " + error;
 
             return (0 == error.Length);
         }
 
 
-        static string dameNombreServidor (string url) 
+        static string getServerName (string url) 
         {
-            int index = url.LastIndexOf("/");
+            Regex rgx = new Regex("(https://|http://)[a-zA-Z0-9(.)]+(/)", RegexOptions.IgnoreCase);
 
-            if (index < 0)
-                return string.Empty;
+            if (rgx.IsMatch(url))
+            {
+                string valor = rgx.Match(url).Value;
+                valor = valor.Substring(valor.IndexOf("//") + 2);
 
-            return url.Substring(0, index);
+                if (valor.StartsWith("www."))
+                    valor = valor.Substring(4);
+
+                return valor.Substring(0, valor.Length - 1);
+            }
+
+            return url;
         }
     }
 }

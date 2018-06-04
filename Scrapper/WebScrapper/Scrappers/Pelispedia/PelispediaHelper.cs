@@ -25,7 +25,7 @@ namespace WebScrapper.Scrappers.Pelispedia
             }
 
             if (error.Length > 0)
-                error = "PelispediaHelper.getKeyMovie -> " + error;
+                error = "getKeyMovie -> " + error;
 
             return (0 == error.Length);
         }
@@ -40,7 +40,7 @@ namespace WebScrapper.Scrappers.Pelispedia
             HttpManager.requestGet(url, headers, ref buffer, ref error);
 
             if (error.Length > 0)
-                error = "PelispediaHelper.getUrlOptions -> " + error;
+                error = "getUrlOptions -> " + error;
 
             return (0 == error.Length);
         }
@@ -73,14 +73,9 @@ namespace WebScrapper.Scrappers.Pelispedia
             }
 
             if (error.Length > 0)
-                error = "PelispediaHelper.getSources -> " + error;
+                error = "getSources -> " + error;
 
             return (0 == error.Length);
-        }
-
-        public static bool isHtml5 (string source)
-        {
-            return (source.IndexOf("cloud.pelispedia.tv") > 0);
         }
 
         public static bool getCode (string buffer, ref string code, ref string error)
@@ -100,17 +95,24 @@ namespace WebScrapper.Scrappers.Pelispedia
             }
 
             if (error.Length > 0)
-                error = "PelispediaHelper.getCode -> " + error;
+                error = "getCode -> " + error;
 
             return (0 == error.Length);
         }
 
         public static bool decryptUrl (string urlBase, string codigo, ref string url, ref string error)
         {
-            url = 
-                urlBase.Replace("embed", "stream") + 
-                "/" + 
-                (new HelperAES()).OpenSSLEncrypt2(codigo, "4fe554b59d760c9986c903b07af8b7a4yt4fe554b59d760c9986c903b07af8b7a4785446346");
+            HelperAES aes = new HelperAES();
+
+            urlBase = urlBase.Replace("embed", "stream");
+
+            url = string.Format(
+                "{0}/{1}", 
+                urlBase, 
+                aes.OpenSSLEncrypt2(
+                    codigo, 
+                    "4fe554b59d760c9986c903b07af8b7a4yt4fe554b59d760c9986c903b07af8b7a4785446346")
+            );
 
             return true;
         }

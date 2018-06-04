@@ -54,34 +54,6 @@ namespace Commons.CustomHttpManager.Hacks
         }
 
 
-        //public static void passSucuri(string jsCrypt, ref Headers headers)
-        //{
-        //    Regex reg = new Regex("S='.+?'", RegexOptions.Singleline);
-
-        //    string lin0 = string.Empty;
-        //    string lin1 = string.Empty;
-
-        //    if (reg.IsMatch(jsCrypt))
-        //    {
-        //        string base64 = reg.Match(jsCrypt).Value.Split("'".ToCharArray()[0])[1];
-        //        string js = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
-        //        string[] lines = getLines(js);
-
-        //        string var0 = lines[0].Split('=')[0];
-
-        //        string[] exps0 = lines[0].Substring(lines[0].IndexOf("=") + 1).Split('+');
-        //        string[] exps1 = lines[1].Substring(lines[1].IndexOf("=") + 1).Split('+');
-
-        //        foreach (string exp in exps0)
-        //            lin0 += evalExp(exp.Trim());
-
-        //        foreach (string exp in exps1)
-        //            lin1 += evalExp(exp.Trim(), var0, lin0);
-
-        //        headers.Add(new Header("Cookie", lin1));
-        //    }
-        //}
-
         static string evalExp (string exp, string identifier = "", string change = "")
         {
             string val = string.Empty;

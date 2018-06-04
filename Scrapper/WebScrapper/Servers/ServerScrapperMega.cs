@@ -7,6 +7,10 @@ namespace WebScrapper.Servers
 {
     public class ServerScrapperMega : IServerScrapper
     {
+        public override string name ()
+        {
+            return "MEGA";
+        }
         public override bool scrappear(string url, ref Sources serverLinks, ref string error)
         {
             throw new NotImplementedException();

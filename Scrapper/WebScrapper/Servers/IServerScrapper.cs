@@ -7,6 +7,8 @@ namespace WebScrapper.Servers
     {
         public abstract bool scrappear (string url, ref Sources serverLinks, ref string error);
 
+        public abstract string name();
+
 
         protected bool obtenerCodigo (string buffer, ref string codigo, ref string error)
         {

@@ -7,15 +7,18 @@ namespace WebScrapper.Servers
 {
     public class ServerScrapperOpenload : IServerScrapper
     {
-        const string SERVER = "Openload";
-
+        public override string name ()
+        {
+            return "OPENLOAD";
+        }
 
         public override bool scrappear (string url, ref Sources serverLinks, ref string error)
         {
-            string buffer    = string.Empty;
-            string urlVideo  = string.Empty;
-            string urlSubs   = string.Empty;
-            string urlThumb  = string.Empty;
+            string      buffer    = string.Empty;
+            string      urlVideo  = string.Empty;
+            string      urlSubs   = string.Empty;
+            string      urlThumb  = string.Empty;
+            HttpHeaders rHeaders  = new HttpHeaders();
 
             if (0 == error.Length)
                 HttpManager.requestGet(url, null, ref buffer, ref error);
@@ -30,14 +33,18 @@ namespace WebScrapper.Servers
                 obtenerUrlVideo(url, buffer, ref urlVideo, ref error);
 
             if (0 == error.Length)
-                HttpManager.requestGetSR(urlVideo, null, ref buffer, ref error);
+                HttpManager.requestGetSR(urlVideo, null, ref buffer, ref rHeaders, ref error);
 
             if (0 == error.Length)
-                buscarUrlDefinitiva(buffer, ref urlVideo, ref error);
+                if (!rHeaders.exist("Location"))
+                    error = "Error $$$$";
+
+            if (0 == error.Length)
+                urlVideo = rHeaders.value("Location").Replace("?mime=true", "");
 
             if (0 == error.Length)
                 if (base.esArchivoValido(urlVideo))
-                    serverLinks.Add(new Source(urlVideo, urlSubs, "Default", SERVER, urlThumb));
+                    serverLinks.Add(new Source(urlVideo, urlSubs, "Default", name(), urlThumb));
 
             if (error.Length > 0)
                 error = "ServerScrapperOpenload.scrappear -> " + error;
@@ -94,54 +101,8 @@ namespace WebScrapper.Servers
         {
             try
             {
-                ulong parametro1 = 0;
-                ulong parametro2 = 0;
-                ulong parametro3 = 0;
-
-                Regex rgx = new Regex("<span.+</span>", RegexOptions.Singleline);
-
-                // aca buscar ">window.fileid="TO4fqkfjp80""
-
-                if (!rgx.IsMatch(buffer))
-                    throw new Exception("No se encontró el link del video (url = " + url + ")");
-
-                string id = rgx.Match(buffer).Value.Split("<>".ToCharArray())[2];
-
-                rgx = new Regex("_0x30725e,[(]parseInt.+_1x4bfb36[)];continue;case", RegexOptions.Singleline);
-
-                if (!rgx.IsMatch(buffer))
-                    throw new Exception("No se encontró el link del video (url = " + url + ")");
-
-                string valor = rgx.Match(buffer).Value;
-
-                string aux1 = valor.Split("'".ToCharArray())[1];
-                parametro1 = Convert.ToUInt64(aux1, 8);
-
-                aux1 = valor.Split(")".ToCharArray())[1];
-                aux1 = aux1.Substring(0, aux1.Length - 4);
-                aux1 = aux1.Substring(1);
-
-                ulong numberAux = Convert.ToUInt64(aux1);
-
-                parametro1 = parametro1 - numberAux + 4;
-
-                aux1 = valor.Split("()".ToCharArray())[5];
-                aux1 = aux1.Substring(0, aux1.Length - 4);
-
-                parametro2 = Convert.ToUInt64(aux1) - 8;
-
-                rgx = new Regex("_1x4bfb36=parseInt[(]'.+'[,]8[)]", RegexOptions.Singleline);
-
-                if (!rgx.IsMatch(buffer))
-                    throw new Exception("No se encontró el link del video (url = " + url + ")");
-
-                valor = rgx.Match(buffer).Value;
-
-                aux1 = valor.Split("'".ToCharArray())[1];
-
-                parametro3 = Convert.ToUInt64(aux1, 8);
-
-                urlVideo = string.Format("https://oload.stream/stream/{0}?mime=true", decodificar(id, parametro1, parametro2, parametro3));
+                string magic = openloadMagic(buffer);
+                urlVideo = string.Format("https://openload.co/stream/{0}?mime=true", magic);
             }
             catch (Exception ex)
             {
@@ -154,7 +115,49 @@ namespace WebScrapper.Servers
             return (0 == error.Length);
         }
 
-        string decodificar (string cadena, ulong parametro1, ulong parametro2, ulong parametro3)
+
+        string openloadMagic (string offuscatedData)
+        {
+            // Search for code
+
+            Regex rgxC = new Regex("<p style=\"\" id=\"[^\"]+\">(.*?)</p>", RegexOptions.Singleline);
+
+            if (!rgxC.IsMatch(offuscatedData))
+                throw new Exception("openloadMagix error 0");
+
+            string code = rgxC.Match(offuscatedData).Value.Split("<>".ToCharArray())[2];
+
+            // Search for param 1
+
+            Regex rgxP1 = new Regex(@"_0x30725e,(\(parseInt.*?)\),", RegexOptions.Singleline);
+
+            if (!rgxP1.IsMatch(offuscatedData))
+                throw new Exception("openloadMagix error 1");
+
+            string p1 = evalJS(rgxP1.Match(offuscatedData).Value, 1);
+
+            // Search for param 2
+
+            Regex rgxP2 = new Regex("_0x59ce16=([^;]+)", RegexOptions.Singleline);
+
+            if (!rgxP2.IsMatch(offuscatedData))
+                throw new Exception("openloadMagix error 2");
+
+            string p2 = evalJS(rgxP2.Match(offuscatedData).Value.Split('=')[1], 2);
+
+            // Search for param 3
+
+            Regex rgxP3 = new Regex("_1x4bfb36=([^;]+)", RegexOptions.Singleline);
+
+            if (!rgxP3.IsMatch(offuscatedData))
+                throw new Exception("openloadMagix error 3");
+
+            string p3 = evalJS(rgxP3.Match(offuscatedData).Value.Split('=')[1], 3);
+
+            return decode (code, ulong.Parse(p1), ulong.Parse(p2), ulong.Parse(p3));
+        }
+
+        string decode (string cadena, ulong parametro1, ulong parametro2, ulong parametro3)
         {
             string          resultado   = "";
             string          id          = cadena.Substring(0, 72);
@@ -172,60 +175,41 @@ namespace WebScrapper.Servers
 
             while (iterador < cadena.Length)
             {
-                ulong h01 = 0x40;
-                ulong h02 = 0x7f;
-                ulong h03 = 0x0;
-                ulong h04 = 0x0;
-                ulong h05 = 0x0;
+                ulong h01 = 64;
+                ulong h03 = 0;
+                ulong h04 = 0;
+                ulong h05 = 0;
 
-                ulong varC = 0x3f;
-
-                do
+                while (true)
                 {
-
                     if (iterador + 1 >= cadena.Length)
-                        h01 = 0x8f;
+                        h01 = 143;
 
-                    string aux06 = cadena.Substring(iterador, 2);
-
-                    iterador++;
-                    iterador++;
-
-                    h05 = Convert.ToUInt64(aux06, 16);
+                    h05 = Convert.ToUInt64(cadena.Substring(iterador, 2), 16);
+                    iterador = iterador + 2;
 
                     if (h04 < 30)
-                    {
-                        h03 += (ulong)((int)(h05 & varC) << (int)h04);
-                    }
+                        h03 += (ulong)((int)(h05 & 63) << (int)h04);
                     else
-                    {
-                        h03 += (h05 & varC) * Convert.ToUInt64(Math.Pow(2, h04));
-                    }
+                        h03 += (h05 & 63) * Convert.ToUInt64(Math.Pow(2, h04));
 
-                    h04 += 0x6;
+                    h04 += 6;
 
-                } while (h05 >= h01);
+                    if (!(h05 >= h01))
+                        break;
+                }
 
-                ulong aux01 = parametro3;
-                ulong aux02 = (ulong)h03 ^ (ulong)(arreglo[(int)varD % 0x9]);
-
-                aux02 = (ulong)(((ulong)aux02 ^ parametro1 / parametro2) ^ (ulong)aux01);
-
-                ulong aux03 = (h01 * 2) + h02;
+                ulong nuevo1 = (ulong)h03 ^ (ulong)(arreglo[(int)varD % 9]) ^ parametro1 ^ parametro3;
+                ulong nuevo2 = h01 * 2 + 127;
 
                 for (int i = 0; i < 4; i++)
                 {
-                    ulong aux04 = aux02 & aux03;
-                    int aux05 = (72 / 0x9) * i;
+                    string nuevo3 = new String(new char[] { (char)(((nuevo1 & nuevo2) >> 8 * i) - 1) });
 
-                    aux04 = aux04 >> aux05;
+                    if (nuevo3 != "$")
+                        resultado += nuevo3;
 
-                    string aux06 = new String(new char[] { (char)(aux04 - 1) });
-
-                    if (aux06 != "%")
-                        resultado += aux06;
-
-                    aux03 = (aux03 << 72 / 0x9);
+                    nuevo2 = (nuevo2 << 8);
                 }
 
                 varD += 0x1;
@@ -234,10 +218,41 @@ namespace WebScrapper.Servers
             return resultado;
         }
 
-        bool buscarUrlDefinitiva (string buffer, ref string urlStream, ref string error)
+        string evalJS (string jsCode, int param)
         {
-            urlStream = buffer.Replace("?mime=true", "");
-            return true;
+            if (param == 1)
+            {
+                // "_0x30725e,(parseInt('33757170523',8)-917+0x4-2)/(14-0x8)),"
+
+                ulong number1 = Convert.ToUInt64(jsCode.Split("'".ToCharArray())[1], 8);
+                ulong number2 = Convert.ToUInt64(jsCode.Split("-+()".ToCharArray())[4]);
+                ulong number3 = Convert.ToUInt64(jsCode.Split("-+()".ToCharArray())[5], 16);
+                ulong number4 = Convert.ToUInt64(jsCode.Split("-+()".ToCharArray())[6]);
+                ulong number5 = Convert.ToUInt64(jsCode.Split("-+()".ToCharArray())[8]);
+                ulong number6 = Convert.ToUInt64(jsCode.Split("-+()".ToCharArray())[9], 16);
+
+                return ((number1 - number2 + number3 - number4) / (number5 - number6)).ToString();
+            }
+
+            if (param == 2)
+            {
+                // 0x28a28dec
+
+                ulong number = Convert.ToUInt64(jsCode, 16);
+                return number.ToString();
+            }
+
+            if (param == 3)
+            {
+                // parseInt('24045132072',8)-34
+
+                ulong number1  = Convert.ToUInt64(jsCode.Split("'".ToCharArray())[1], 8);
+                ulong number2 = Convert.ToUInt64(jsCode.Split('-')[1]);
+
+                return (number1 - number2).ToString();
+            }
+
+            throw new Exception("EvalJS -> error al parsear");
         }
     }
 }

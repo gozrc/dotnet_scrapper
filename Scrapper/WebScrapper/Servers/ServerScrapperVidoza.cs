@@ -6,8 +6,10 @@ namespace WebScrapper.Servers
 {
     public class ServerScrapperVidoza : IServerScrapper
     {
-        const string SERVER = "Vidoza";
-
+        public override string name ()
+        {
+            return "VIDOZA";
+        }
 
         public override bool scrappear (string url, ref Sources serverLinks, ref string error)
         {
@@ -38,7 +40,7 @@ namespace WebScrapper.Servers
 
             if (0 == error.Length)
                 if (base.esArchivoValido(urlVideo))
-                    serverLinks.Add(new Source(urlVideo, urlSubs, "Default", SERVER, urlThumb));
+                    serverLinks.Add(new Source(urlVideo, urlSubs, "Default", name(), urlThumb));
 
             if (error.Length > 0)
                 error = "ServerScrapperVidoza.scrappear -> " + error;

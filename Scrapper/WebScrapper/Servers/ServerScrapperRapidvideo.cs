@@ -7,7 +7,10 @@ namespace WebScrapper.Servers
 {
     public class ServerScrapperRapidvideo : IServerScrapper
     {
-        const string SERVER = "Rapidvideo";
+        public override string name ()
+        {
+            return "RAPIDVIDEO";
+        }
 
         public override bool scrappear (string url, ref Sources serverLinks, ref string error)
         {
@@ -38,7 +41,7 @@ namespace WebScrapper.Servers
                         break;
 
                     if (base.esArchivoValido(urlVideo))
-                        serverLinks.Add(new Source(urlVideo, urlSubs, urlTmp.Substring(urlTmp.IndexOf("=") + 1), SERVER, urlThumb));
+                        serverLinks.Add(new Source(urlVideo, urlSubs, urlTmp.Substring(urlTmp.IndexOf("=") + 1), name(), urlThumb));
                 }
             }
 

@@ -6,7 +6,10 @@ namespace WebScrapper.Servers
 {
     public class ServerScrapperStreamango : IServerScrapper
     {
-        const string SERVER = "Streamango";
+        public override string name ()
+        {
+            return "STREAMANGO";
+        }
 
         public override bool scrappear (string url, ref Sources serverLinks, ref string error)
         {
@@ -29,7 +32,7 @@ namespace WebScrapper.Servers
 
             if (0 == error.Length)
                 if (base.esArchivoValido(urlVideo))
-                    serverLinks.Add(new Source(urlVideo, urlSubs, "Default", SERVER, urlThumb));
+                    serverLinks.Add(new Source(urlVideo, urlSubs, "Default", name(), urlThumb));
 
             if (error.Length > 0)
                 error = "ServerScrapperStreamango.scrappear -> " + error;

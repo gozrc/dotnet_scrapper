@@ -7,9 +7,15 @@ namespace WebScrapper.Servers
 {
     public class ServerScrapperFembed : IServerScrapper
     {
+        public override string name ()
+        {
+            return "FEMBED";
+        }
+
         public override bool scrappear(string url, ref Sources serverLinks, ref string error)
         {
-            throw new NotImplementedException();
+            error = "sdf";
+            return false;
         }
     }
 }
