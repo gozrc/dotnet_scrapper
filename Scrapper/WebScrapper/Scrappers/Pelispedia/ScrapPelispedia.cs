@@ -54,6 +54,7 @@ namespace WebScrapper.Scrappers.Pelispedia
                     { // sacar
                         Console.WriteLine("[{0:0000}] Title: {1}", index, movies[movies.Count - 1].title);
                         //break;
+                        if (index == 3) break;
                     }
                 }
 
@@ -90,13 +91,16 @@ namespace WebScrapper.Scrappers.Pelispedia
             {
                 foreach (string source in sources)
                 {
-                    error = string.Empty;
+                    if (source.StartsWith("https://load.pelispedia.vip/embed"))
+                    {
+                        error = string.Empty;
 
-                    if (decodeSource(source, ref urlDecoded, ref error))
-                        ServerScrapper.scrap(urlDecoded, ref movie.sources, ref error);
+                        if (decodeSource(source, ref urlDecoded, ref error))
+                            ServerScrapper.scrap(urlDecoded, ref movie.sources, ref error);
 
-                    if (error.Length > 0)
-                        logPelispedia ("ERROR", string.Format("getMovieSources -> {0} [{1}]", error, source));
+                        if (error.Length > 0)
+                            logPelispedia("ERROR", string.Format("getMovieSources -> {0} [{1}]", error, source));
+                    }
                 }
             }
             else

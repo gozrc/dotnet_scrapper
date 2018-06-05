@@ -16,8 +16,15 @@ namespace WebScrapper
         {
             IWebScrapper scrapper = new ScrapPelispedia();
             Movies movies = scrapper.scrapMovies();
-            Console.WriteLine(movies[0].title);
 
+            foreach (Movie m in movies)
+            {
+                Console.WriteLine();
+                Console.WriteLine(m.title);
+
+                foreach (WebScrapper.Servers.Source s in m.sources)
+                    Console.WriteLine("\t" + s.name_server + " " + s.description);
+            }
 
             Console.ReadKey();
         }
