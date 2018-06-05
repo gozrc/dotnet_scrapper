@@ -54,13 +54,15 @@ namespace WebScrapper.Servers
         {
             try
             {
-                Regex rgx = new Regex("<img src=\".+[>]", RegexOptions.IgnoreCase);
+                buffer = buffer.Replace("\\", "");
+                Regex rgx = new Regex("https://asset.fembed.com/thumbnail/[^\"]*", RegexOptions.IgnoreCase);
+                
+                // usar Groups!!!!
 
                 if (!rgx.IsMatch(buffer))
                     throw new Exception("No se encontró el link del thumb");
 
-                urlThumb = rgx.Match(buffer).Value.Split("\"".ToCharArray())[1];
-                urlThumb = urlThumb.Substring(urlThumb.LastIndexOf("https://"));
+                urlThumb = rgx.Match(buffer).Value;
             }
             catch (Exception ex)
             {
@@ -126,8 +128,6 @@ namespace WebScrapper.Servers
         {
             try
             {
-                // https://www208.superembed.com/token=XzNNQxJ2Fgi9xjAeYFPfIA/1528179143/181.228.0.0/11/0/3d/a87da7b5ec3e2e123dbfb176102293d0-360p.mp4
-
                 return urlVideo.Substring(urlVideo.Length - 8, 4);
             }
             catch
