@@ -40,10 +40,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CustomDatabaseManager\CustomDatabase.cs" />
     <Compile Include="CustomHttpManager\Hacks\HackSucuri.cs" />
     <Compile Include="CustomHttpManager\HttpHeader.cs" />
     <Compile Include="CustomHttpManager\HttpHeaders.cs" />
     <Compile Include="CustomHttpManager\HttpManager.cs" />
+    <Compile Include="CustomLogManager\CustomLogText.cs" />
+    <Compile Include="CustomThreadManager\CustomThreadPool.cs" />
+    <Compile Include="CustomThreadManager\CustomThreadPoolDebugEventArgs.cs" />
+    <Compile Include="CustomThreadManager\CustomThreadTask.cs" />
+    <Compile Include="CustomThreadManager\CustomThreadTaskDebugEventArgs.cs" />
+    <Compile Include="CustomTimerManager\CustomTimer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

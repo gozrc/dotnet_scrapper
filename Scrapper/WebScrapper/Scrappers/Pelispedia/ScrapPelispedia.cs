@@ -23,6 +23,7 @@ namespace WebScrapper.Scrappers.Pelispedia
             {
                 Movie movie = movies[k];
                 getMovieSources (ref movie);
+                Console.WriteLine(" {0}", k + 1);
             }
 
             return movies;
@@ -54,7 +55,7 @@ namespace WebScrapper.Scrappers.Pelispedia
                     { // sacar
                         Console.WriteLine("[{0:0000}] Title: {1}", index, movies[movies.Count - 1].title);
                         //break;
-                        if (index == 3) break;
+                        //if (index == 3) break;
                     }
                 }
 

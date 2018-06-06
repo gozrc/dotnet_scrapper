@@ -20,6 +20,8 @@ namespace WebScrapper.Servers
             string urlSubs   = string.Empty;
             string urlThumb  = string.Empty;
 
+            error = "Falta verificar VIDOZA";
+
             if (0 == error.Length)
                 HttpManager.requestGet(url, null, ref buffer, ref error);
 
@@ -39,8 +41,7 @@ namespace WebScrapper.Servers
                 buscarUrlDefinitiva(url, buffer, ref urlVideo, ref error);
 
             if (0 == error.Length)
-                if (base.esArchivoValido(urlVideo))
-                    serverLinks.Add(new Source(urlVideo, urlSubs, "Default", name(), urlThumb));
+                serverLinks.Add(new Source(name(), urlVideo, urlSubs, "Default"));
 
             if (error.Length > 0)
                 error = "scrappear -> " + error;

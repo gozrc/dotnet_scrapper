@@ -16,110 +16,62 @@ namespace WebScrapper.Servers
             string buffer   = string.Empty;
             string urlVideo = string.Empty;
             string urlSubs  = string.Empty;
-            string urlThumb = string.Empty;
 
             if (0 == error.Length)
                 HttpManager.requestGet(url, null, ref buffer, ref error);
 
             if (0 == error.Length)
-                obtenerUrlSubs(url, buffer, ref urlSubs, ref error);
+                getUrlSubs(buffer, ref urlSubs, ref error);
 
             if (0 == error.Length)
-                obtenerUrlVideo(url, buffer, ref urlVideo, ref error);
+                getUrlVideo(buffer, ref urlVideo, ref error);
 
             if (0 == error.Length)
-                obtenerUrlThumb(url, buffer, ref urlThumb, ref error);
-
-            if (0 == error.Length)
-                if (base.esArchivoValido(urlVideo))
-                    serverLinks.Add(new Source(urlVideo, urlSubs, "Default", name(), urlThumb));
-
-            if (error.Length > 0)
-                error = "scrappear -> " + error;
+                serverLinks.Add(new Source(name(), urlVideo, urlSubs, "Default"));
 
             return (0 == error.Length);
         }
 
 
-        bool obtenerUrlSubs (string url, string buffer, ref string urlSubs, ref string error)
+        bool getUrlSubs (string buffer, ref string urlSubs, ref string error)
+        {
+            urlSubs = buffer.MatchRegex("<track kind=\"captions\" src=\"(.+)\" srclang");
+
+            if (urlSubs.Length == 0)
+                error = "Subtitles link not found";
+
+            return (0 == error.Length);
+        }
+
+        bool getUrlVideo (string buffer, ref string urlVideo, ref string error)
         {
             try
             {
-                Regex rgx = new Regex("<track kind=\"captions\" src=(.+)/>", RegexOptions.IgnoreCase);
+                string token_str = buffer.MatchRegex(",src:d[(]'(.+)',");
+                string token_nbr = buffer.MatchRegex(",src:d[(]'.+',(.+)[)],");
 
-                if (!rgx.IsMatch(buffer))
-                    throw new Exception("No se encontró el link del subtitulo (url = " + url + ")");
+                if (token_nbr.Length > 0 && token_str.Length > 0)
+                {
+                    urlVideo = "https:" + streamangoMagic(token_str, int.Parse(token_nbr));
 
-                string valor = rgx.Match(buffer).Value;
+                    HttpHeaders responseHeaders = new HttpHeaders();
 
-                urlSubs = valor.Split("\"".ToCharArray())[3];
+                    if (HttpManager.requestGetSR(urlVideo, null, ref buffer, ref responseHeaders, ref error))
+                        urlVideo = responseHeaders.value("Location");
+                }
             }
-            catch (Exception ex)
+            catch
             {
-                error = ex.Message;
+                //
             }
 
-            if (error.Length > 0)
-                error = "obtenerUrlSubs -> " + error;
+            if (urlVideo.Length == 0)
+                error = "Link video not found";
 
             return (0 == error.Length);
         }
 
-        bool obtenerUrlVideo (string url, string buffer, ref string urlVideo, ref string error)
-        {
-            try
-            {
-                Regex rgx = new Regex("srces.push.+", RegexOptions.IgnoreCase);
-
-                if (!rgx.IsMatch(buffer))
-                    throw new Exception("No se encontró el link del video (url = " + url + ")");
-
-                string[] valores = rgx.Match(buffer).Value.Split("()',".ToCharArray());
-
-                string token_str = valores[4];
-                int    token_nbr = int.Parse(valores[6]);
-
-                urlVideo = "https:" + decodificar(token_str, token_nbr);
-
-                if (!HttpManager.requestGetSR(urlVideo, null, ref buffer, ref error))
-                    throw new Exception(error);
-
-                urlVideo = buffer;
-            }
-            catch (Exception ex)
-            {
-                error = ex.Message;
-            }
-
-            if (error.Length > 0)
-                error = "obtenerUrlVideo -> " + error;
-
-            return (0 == error.Length);
-        }
-
-        bool obtenerUrlThumb (string url, string buffer, ref string urlThumb, ref string error)
-        {
-            try
-            {
-                Regex rgx = new Regex("<meta name=\"og:image.+>", RegexOptions.IgnoreCase);
-
-                if (!rgx.IsMatch(buffer))
-                    throw new Exception("No se encontró el link del thumb (url = " + url + ")");
-
-                urlThumb = rgx.Match(buffer).Value.Split('\"')[3];
-            }
-            catch (Exception ex)
-            {
-                error = ex.Message;
-            }
-
-            if (error.Length > 0)
-                error = "obtenerUrlThumb -> " + error;
-
-            return (0 == error.Length);
-        }
-
-        string decodificar (string cadena, int parametro)
+        string streamangoMagic (string cadena, int parametro)
         {
             string k = "=/+9876543210zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA";
             string resultado = "";

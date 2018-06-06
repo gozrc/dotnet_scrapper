@@ -53,6 +53,7 @@
     <Compile Include="Entities\Seasons.cs" />
     <Compile Include="Entities\Serie.cs" />
     <Compile Include="Entities\Series.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scrappers\IWebScrapper.cs" />
@@ -68,7 +69,6 @@
     <Compile Include="Servers\Source.cs" />
     <Compile Include="Servers\Sources.cs" />
     <Compile Include="Servers\ServerScrapperFembed.cs" />
-    <Compile Include="Servers\ServerScrapperMega.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

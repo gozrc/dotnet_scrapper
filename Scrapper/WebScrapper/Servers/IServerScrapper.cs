@@ -35,22 +35,5 @@ namespace WebScrapper.Servers
 
             return (0 == error.Length);
         }
-
-        protected bool esArchivoValido (string urlVideo)
-        {
-            // TODO:
-            return true;
-
-            //string error        = string.Empty;
-            //string dataResponse = string.Empty;
-
-            //if (urlVideo.Substring(urlVideo.Length - 4, 1) != ".")
-            //    return false;
-
-            //if (!HttpHelper.requestHead(urlVideo, null, ref dataResponse, ref error))
-            //    return false;
-
-            //return true;
-        }
     }
 }

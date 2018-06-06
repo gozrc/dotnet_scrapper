@@ -17,100 +17,54 @@ namespace WebScrapper.Servers
             string      buffer    = string.Empty;
             string      urlVideo  = string.Empty;
             string      urlSubs   = string.Empty;
-            string      urlThumb  = string.Empty;
-            HttpHeaders rHeaders  = new HttpHeaders();
 
             if (0 == error.Length)
                 HttpManager.requestGet(url, null, ref buffer, ref error);
 
             if (0 == error.Length)
-                obtenerUrlSubs(url, buffer, ref urlSubs, ref error);
+                getUrlSubs(buffer, ref urlSubs, ref error);
 
             if (0 == error.Length)
-                obtenerUrlThumb(url, buffer, ref urlThumb, ref error);
+                getUrlVideo(url, buffer, ref urlVideo, ref error);
 
             if (0 == error.Length)
-                obtenerUrlVideo(url, buffer, ref urlVideo, ref error);
-
-            if (0 == error.Length)
-                HttpManager.requestGetSR(urlVideo, null, ref buffer, ref rHeaders, ref error);
-
-            if (0 == error.Length)
-                if (!rHeaders.exist("Location"))
-                    error = "Error $$$$";
-
-            if (0 == error.Length)
-                urlVideo = rHeaders.value("Location").Replace("?mime=true", "");
-
-            if (0 == error.Length)
-                if (base.esArchivoValido(urlVideo))
-                    serverLinks.Add(new Source(urlVideo, urlSubs, "Default", name(), urlThumb));
-
-            if (error.Length > 0)
-                error = "scrappear -> " + error;
+                serverLinks.Add(new Source(name(), urlVideo, urlSubs, "Default"));
 
             return (0 == error.Length);
         }
 
 
-        bool obtenerUrlSubs (string url, string buffer, ref string urlSubs, ref string error)
+        bool getUrlSubs (string buffer, ref string urlSubs, ref string error)
         {
-            try
-            {
-                Regex rgx = new Regex(@"<track kind.+>", RegexOptions.IgnoreCase);
+            urlSubs = buffer.MatchRegex("<track kind=\"captions\" src=\"([^\"]*)");
 
-                if (!rgx.IsMatch(buffer))
-                    throw new Exception("No se encontró el link del subtitulo (url = " + url + ")");
-
-                urlSubs = rgx.Match(buffer).Value.Split("\"".ToCharArray())[3];
-            }
-            catch (Exception ex)
-            {
-                error = ex.Message;
-            }
-
-            if (error.Length > 0)
-                error = "obtenerUrlSubs -> " + error;
+            if (urlSubs.Length == 0)
+                error = "Subtitles link not found";
 
             return (0 == error.Length);
         }
 
-        bool obtenerUrlThumb (string url, string buffer, ref string urlThumb, ref string error)
+        bool getUrlVideo (string url, string buffer, ref string urlVideo, ref string error)
         {
             try
             {
-                Regex rgx = new Regex("<meta name=\"og:image.+>", RegexOptions.IgnoreCase);
+                HttpHeaders rHeaders = new HttpHeaders();
 
-                if (!rgx.IsMatch(buffer))
-                    throw new Exception("No se encontró el link del thumb (url = " + url + ")");
+                urlVideo = string.Format(
+                    "https://openload.co/stream/{0}?mime=true", 
+                    openloadMagic(buffer)
+                );
 
-                urlThumb = rgx.Match(buffer).Value.Split("\"".ToCharArray())[3];
+                if (HttpManager.requestGetSR(urlVideo, null, ref buffer, ref rHeaders, ref error))
+                    urlVideo = rHeaders.value("Location").Replace("?mime=true", "");
             }
-            catch (Exception ex)
+            catch 
             {
-                error = ex.Message;
+                //
             }
 
-            if (error.Length > 0)
-                error = "obtenerUrlThumb -> " + error;
-
-            return (0 == error.Length);
-        }
-
-        bool obtenerUrlVideo (string url, string buffer, ref string urlVideo, ref string error)
-        {
-            try
-            {
-                string magic = openloadMagic(buffer);
-                urlVideo = string.Format("https://openload.co/stream/{0}?mime=true", magic);
-            }
-            catch (Exception ex)
-            {
-                error = ex.Message;
-            }
-
-            if (error.Length > 0)
-                error = "obtenerUrlVideo -> " + error;
+            if (urlVideo.Length == 0)
+                error = "Link video not found";
 
             return (0 == error.Length);
         }
@@ -120,12 +74,7 @@ namespace WebScrapper.Servers
         {
             // Search for code
 
-            Regex rgxC = new Regex("<p style=\"\" id=\"[^\"]+\">(.*?)</p>", RegexOptions.Singleline);
-
-            if (!rgxC.IsMatch(offuscatedData))
-                throw new Exception("openloadMagix error 0");
-
-            string code = rgxC.Match(offuscatedData).Value.Split("<>".ToCharArray())[2];
+            string code = offuscatedData.MatchRegex("<p style=\"\" id=\"[^\"]+\">(.*?)</p>");
 
             // Search for param 1
 

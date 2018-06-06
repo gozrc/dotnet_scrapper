@@ -26,25 +26,10 @@ namespace Scrapper
         {
             string error = string.Empty;
 
-            IWebScrap scrapper = new ScrapPelispedia();
+            string connectionString = string.Format("Data Source={0};Initial Catalog={1};User id={2};Password={3};Application Name=SsnService;MultipleActiveResultSets=True",
+                "gozgvm.ddns.net", "VideoScrapDB", "usr_test", "logica22s1$");
 
-
-
-            Movies movies = new Movies();
-
-            if (0 == error.Length)
-                Library.loadMovies(ref movies, "pelicula.xml", ref error);
-
-            if (0 == error.Length)
-                scrapper.scrapMovies(ref movies, ref error);
-
-            if (0 == error.Length)
-                Library.saveMovies(movies, "pelicula.xml", ref error);
-
-            if (0 == error.Length)
-                Console.WriteLine("Ok");
-            else
-                Console.WriteLine("Error: " + error);
+            Commons.CustomDatabaseManager.CustomDatabase.ejecutar(connectionString, "select * from testtable", ref error);
         }
     }
 }
