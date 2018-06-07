@@ -55,12 +55,13 @@ namespace WebScrapper.Scrappers.Pelispedia
                     { // sacar
                         Console.WriteLine("[{0:0000}] Title: {1}", index, movies[movies.Count - 1].title);
                         //break;
-                        //if (index == 3) break;
+                        //if (index == 200) break;
                     }
                 }
 
                 { // sacar
-                    break;
+                    //break;
+                    if (index > 200) break;
                 }
             }
 
@@ -68,7 +69,7 @@ namespace WebScrapper.Scrappers.Pelispedia
                 logPelispedia ("ERROR", "getMovieTitles -> " + error);
         }
 
-        void getMovieSources (ref Movie movie)
+        public void getMovieSources (ref Movie movie)
         {
             string       buffer          = string.Empty;
             string       keyMovie        = string.Empty;
@@ -86,7 +87,7 @@ namespace WebScrapper.Scrappers.Pelispedia
                 PelispediaHelper.getUrlOptions(movie.url_web, keyMovie, ref buffer, ref error);
 
             if (0 == error.Length)
-                PelispediaHelper.getSources(movie.url_web, buffer, ref sources, ref error);
+                PelispediaHelper.getSources(buffer, ref sources, ref error);
 
             if (0 == error.Length)
             {
@@ -100,13 +101,13 @@ namespace WebScrapper.Scrappers.Pelispedia
                             ServerScrapper.scrap(urlDecoded, ref movie.sources, ref error);
 
                         if (error.Length > 0)
-                            logPelispedia("ERROR", string.Format("getMovieSources -> {0} [{1}]", error, source));
+                            logPelispedia ("ERROR", string.Format("[{0}] {1}", movie.title, error));
                     }
                 }
             }
             else
             {
-                logPelispedia ("ERROR", string.Format("getMovieSources -> {0} [{1}]", error, movie.url_web));
+                logPelispedia ("ERROR", string.Format("[{0}] {1}", movie.title, error));
             }
         }
 

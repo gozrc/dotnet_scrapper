@@ -35,7 +35,7 @@ namespace WebScrapper.Scrappers.Pelispedia
             HttpHeaders headers = new HttpHeaders();
             headers.Add (new HttpHeader("Referer", urlMovie));
 
-            string url = string.Format("https://www.pelispedia.tv/api/iframes.php?id={0}&update1.1", keyMovie);
+            string url = string.Format("https://www.pelispedia.tv/api/iframes.php?id={0}?nocache", keyMovie);
 
             HttpManager.requestGet(url, headers, ref buffer, ref error);
 
@@ -45,7 +45,7 @@ namespace WebScrapper.Scrappers.Pelispedia
             return (0 == error.Length);
         }
 
-        public static bool getSources (string url, string buffer, ref List<string> sources, ref string error)
+        public static bool getSources (string buffer, ref List<string> sources, ref string error)
         {
             try
             {
@@ -55,7 +55,7 @@ namespace WebScrapper.Scrappers.Pelispedia
                 );
 
                 if (!rgxOptions.IsMatch(buffer))
-                    throw new Exception("No se encontraron fuentes para la película (url = " + url + ")");
+                    throw new Exception("No se encontraron fuentes para la película");
 
                 foreach (Match optionMatch in rgxOptions.Matches(buffer))
                 {
