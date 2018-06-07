@@ -7,6 +7,26 @@ namespace Commons.CustomDatabaseManager
 {
     public class CustomDatabase
     {
+        SqlConnection connection = null;
+
+        public CustomDatabase (string server, string dbname, string usr, string pwd)
+        {
+            string connectionString = string.Format(
+                "Data Source={0};Initial Catalog={1};User id={2};Password={3};Application Name=WebScrapper",
+                server, dbname, usr, pwd
+            );
+
+            connection = new SqlConnection(connectionString);
+        }
+
+
+
+
+
+
+
+
+
         static string getCS ()
         {
             //return string.Format("Data Source={0};Initial Catalog={1};User id={2};Password={3};Application Name=SsnService;MultipleActiveResultSets=True",
