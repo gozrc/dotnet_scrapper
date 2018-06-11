@@ -8,6 +8,7 @@ using Commons.CustomHttpManager;
 using WebScrapper.Entities;
 using WebScrapper.Scrappers;
 using WebScrapper.Scrappers.Pelispedia;
+using Commons.CustomDatabaseManager;
 
 namespace WebScrapper
 {
@@ -16,7 +17,7 @@ namespace WebScrapper
         static void Main (string[] args)
         {
             // ---------------------------------------------------------------
-            testearBaseDeDatos();
+            //testearBaseDeDatos();
             // ---------------------------------------------------------------
 
             // ---------------------------------------------------------------
@@ -27,17 +28,17 @@ namespace WebScrapper
             // ---------------------------------------------------------------
 
             // ---------------------------------------------------------------
-            //IWebScrapper scrapper = new ScrapPelispedia();
-            //Movies movies = scrapper.scrapMovies();
+            IWebScrapper scrapper = new ScrapPelispedia();
+            Movies movies = scrapper.scrapMovies();
 
-            //foreach (Movie m in movies)
-            //{
-            //    //Console.WriteLine();
-            //    Console.WriteLine(m.title + " " + m.sources.Count().ToString());
+            foreach (Movie m in movies)
+            {
+                //Console.WriteLine();
+                Console.WriteLine(m.title + " " + m.sources.Count().ToString());
 
-            //    //foreach (WebScrapper.Servers.Source s in m.sources)
-            //    //    Console.WriteLine("\t" + s.name_server + " " + s.description);
-            //}
+                //foreach (WebScrapper.Servers.Source s in m.sources)
+                //    Console.WriteLine("\t" + s.name_server + " " + s.description);
+            }
             // ---------------------------------------------------------------
 
             Console.ReadKey();
@@ -55,17 +56,22 @@ namespace WebScrapper
 
         static void testearBaseDeDatos ()
         {
-            string connectionString = string.Format("Data Source={0};Initial Catalog={1};User id={2};Password={3};Application Name=WebScrapper",
-                "NOTEBOOK", "SVDB", "web_scrapper", "web_scrapper1");
-
-            string sql = "SELECT * FROM Movies";
-
-            DataSet ds = new DataSet();
             string error = string.Empty;
 
-            if (Commons.CustomDatabaseManager.CustomDatabase.ejecutar(connectionString, sql, ref ds, ref error))
-                Console.WriteLine("OK");
-            else
+            CustomDatabase customDb = new CustomDatabase(
+                Config.dbServer, Config.dbName, Config.dbUser, Config.dbPassword);
+
+            if (customDb.open(ref error))
+            {
+                string sql = Persistence.DbPersistence.sqlInsertSource(1, "Servidor", "direccion_pelicula", "direccion_subtitulo", "descripcion pelicula", "HASDASDASDASDAS", DateTime.Now);
+
+                if (customDb.execute(sql, ref error))
+                    Console.WriteLine("Ok");
+            }
+
+            customDb.close();
+
+            if (error.Length > 0)
                 Console.WriteLine(error);
         }
     }

@@ -7,11 +7,12 @@ namespace Commons.CustomDatabaseManager
 {
     public class CustomDatabase
     {
-        SqlConnection connection = null;
+        SqlConnection   connection       = null;
+        string          connectionString = string.Empty;
 
         public CustomDatabase (string server, string dbname, string usr, string pwd)
         {
-            string connectionString = string.Format(
+            connectionString = string.Format(
                 "Data Source={0};Initial Catalog={1};User id={2};Password={3};Application Name=WebScrapper",
                 server, dbname, usr, pwd
             );
@@ -20,136 +21,161 @@ namespace Commons.CustomDatabaseManager
         }
 
 
-
-
-
-
-
-
-
-        static string getCS ()
+        public bool open (ref string error)
         {
-            //return string.Format("Data Source={0};Initial Catalog={1};User id={2};Password={3};Application Name=SsnService;MultipleActiveResultSets=True",
-            //    Config.sqlServerName, Config.sqlDatabaseName, Config.sqlUser, Config.sqlPass);
+            if (connection == null)
+                connection = new SqlConnection(connectionString);
 
-            return "";
-        }
-
-        public static bool ejecutar (string cs, string sql, ref DataSet resultado, ref string error)
-        {
             try
             {
-                using (SqlConnection conexion = new SqlConnection(cs))
-                {
-                    conexion.Open();
-
-                    SqlCommand     cmd     = new SqlCommand(sql, conexion);
-                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
-
-                    resultado = new DataSet();
-
-                    adapter.Fill(resultado);
-
-                    conexion.Close();
-                }
+                connection.Open();
             }
             catch (Exception ex)
             {
-                error = "DBHelper.ejecutar -> " + ex.Message;
+                error = "CustomDatabase.Open -> " + ex.Message;
             }
 
             return (0 == error.Length);
         }
 
-        public static bool ejecutar (string cs, string sql, ref string error)
+        public void close ()
         {
             try
             {
-                using (SqlConnection conexion = new SqlConnection(cs))
+                if (connection != null)
+                    connection.Close();
+
+                connection = null;
+            }
+            catch 
+            {
+                //
+            }
+        }
+
+        public bool execute (string sql, ref DataSet dsResponse, ref string error)
+        {
+            if (0 == error.Length)
+                canExecut(ref error);
+
+            if (0 == error.Length)
+            {
+                try
                 {
-                    conexion.Open();
+                    SqlCommand      cmd     = new SqlCommand(sql, connection);
+                    SqlDataAdapter  adapter = new SqlDataAdapter(cmd);
 
-                    SqlCommand cmd = new SqlCommand(sql, conexion);
+                    dsResponse = new DataSet();
 
+                    adapter.Fill (dsResponse);
+                }
+                catch (Exception ex)
+                {
+                    error = "CustomDatabase.execute -> " + ex.Message;
+                }
+            }
+
+            return (0 == error.Length);
+        }
+
+        public bool execute (string sql, ref string error)
+        {
+            if (0 == error.Length)
+                canExecut(ref error);
+
+            if (0 == error.Length)
+            {
+                try
+                {
+                    SqlCommand cmd = new SqlCommand(sql, connection);
                     cmd.ExecuteNonQuery();
-
-                    conexion.Close();
                 }
-            }
-            catch (Exception ex)
-            {
-                error = "DBHelper.ejecutar -> " + ex.Message;
+                catch (Exception ex)
+                {
+                    error = "CustomDatabase.execute -> " + ex.Message;
+                }
             }
 
             return (0 == error.Length);
         }
 
-        public static bool ejecutar (string cs, string sp, List<SqlParameter> parametros, ref DataSet resultado, ref string error)
+        public bool execute (string sp, List<SqlParameter> parameters, ref DataSet dsResponse, ref string error)
         {
-            try
-            {
-                using (SqlConnection conexion = new SqlConnection(cs))
-                {
-                    conexion.Open();
+            if (0 == error.Length)
+                canExecut(ref error);
 
-                    SqlCommand cmd = new SqlCommand(sp, conexion);
+            if (0 == error.Length)
+            {
+                try
+                {
+                    SqlCommand cmd = new SqlCommand(sp, connection);
 
                     cmd.CommandTimeout = 60;
 
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddRange(parametros.ToArray());
+                    cmd.Parameters.AddRange(parameters.ToArray());
 
                     SqlDataAdapter adapter = new SqlDataAdapter(cmd);
 
-                    adapter.Fill(resultado);
-
-                    conexion.Close();
+                    adapter.Fill (dsResponse);
                 }
-            }
-            catch (Exception ex)
-            {
-                error = "DBHelper.ejecutar -> " + ex.Message;
+                catch (Exception ex)
+                {
+                    error = "CustomDatabase.execute -> " + ex.Message;
+                }
             }
 
             return (0 == error.Length);
         }
 
-        public static bool ejecutar (string cs, string sp, List<SqlParameter> parametros, ref string error)
+        public bool execute (string sp, List<SqlParameter> parameters, ref string error)
         {
-            try
-            {
-                using (SqlConnection conexion = new SqlConnection(cs))
-                {
-                    conexion.Open();
+            if (0 == error.Length)
+                canExecut(ref error);
 
-                    SqlCommand cmd = new SqlCommand(sp, conexion);
+            if (0 == error.Length)
+            {
+                try
+                {
+                    SqlCommand cmd = new SqlCommand(sp, connection);
 
                     cmd.CommandTimeout = 60;
 
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddRange(parametros.ToArray());
+                    cmd.Parameters.AddRange(parameters.ToArray());
 
                     cmd.ExecuteNonQuery();
-
-                    conexion.Close();
                 }
-            }
-            catch (Exception ex)
-            {
-                error = "DBHelper.ejecutar -> " + ex.Message;
+                catch (Exception ex)
+                {
+                    error = "CustomDatabase.execute -> " + ex.Message;
+                }
             }
 
             return (0 == error.Length);
-
         }
 
-        public static void agregarParametro (ref List<SqlParameter> lista, string nombre, SqlDbType tipo, object valor)
+        public void addParameter (ref List<SqlParameter> parameters, string name, SqlDbType type, object value)
         {
-            SqlParameter parametro = new SqlParameter(nombre, tipo);
+            SqlParameter parameter = new SqlParameter(name, type);
+            parameter.Value = value;
 
-            parametro.Value = valor;
+            if (parameters == null)
+                parameters = new List<SqlParameter>();
 
-            lista.Add(parametro);
+            parameters.Add (parameter);
+        }
+
+
+        bool canExecut (ref string error)
+        {
+            if (0 == error.Length && connection == null)
+                error = "There isn't connection";
+
+            if (0 == error.Length && connection.State != ConnectionState.Open)
+                error = "Connection isn't open";
+
+            return (0 == error.Length);
         }
     }
 }

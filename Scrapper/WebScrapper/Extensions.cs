@@ -7,7 +7,25 @@ namespace WebScrapper
     {
         public static string MatchRegex (this string str, string regex)
         {
-            Regex rgx = new Regex(regex, RegexOptions.IgnoreCase);
+            return str.MatchRegex(regex, false, false);
+        }
+
+        public static string [] MatchRegexs (this string str, string regex)
+        {
+            return str.MatchRegexs(regex, false, false);
+        }
+
+        public static string MatchRegex (this string str, string regex, bool ignoreCase, bool singleLine)
+        {
+            RegexOptions rgxOptions = RegexOptions.None;
+
+            if (ignoreCase)
+                rgxOptions = rgxOptions | RegexOptions.IgnoreCase;
+
+            if (singleLine)
+                rgxOptions = rgxOptions | RegexOptions.Singleline;
+
+            Regex rgx = new Regex(regex, rgxOptions);
 
             if (!rgx.IsMatch(str))
                 return string.Empty;
@@ -17,9 +35,17 @@ namespace WebScrapper
             return match.Groups[match.Groups.Count - 1].Value;
         }
 
-        public static string [] MatchRegexs (this string str, string regex)
+        public static string[] MatchRegexs (this string str, string regex, bool ignoreCase, bool singleLine)
         {
-            Regex rgx = new Regex(regex, RegexOptions.IgnoreCase);
+            RegexOptions rgxOptions = RegexOptions.None;
+
+            if (ignoreCase)
+                rgxOptions = rgxOptions | RegexOptions.IgnoreCase;
+
+            if (singleLine)
+                rgxOptions = rgxOptions | RegexOptions.Singleline;
+
+            Regex rgx = new Regex(regex, rgxOptions);
 
             List<string> rst = new List<string>();
 

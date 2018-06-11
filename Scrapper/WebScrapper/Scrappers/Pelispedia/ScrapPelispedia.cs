@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using WebScrapper.Entities;
 using WebScrapper.Cryptography;
@@ -32,22 +31,17 @@ namespace WebScrapper.Scrappers.Pelispedia
 
         void getMovieTitles (ref Movies movies)
         {
-            int    index        = 0;
-            string responseData = string.Empty;
-            string error        = string.Empty;
+            int    index  = 1000;
+            string buffer = string.Empty;
+            string error  = string.Empty;
 
-            while (HttpManager.requestGet(string.Format(URL_MOVIES, index, "true", "", "", ""), null, ref responseData, ref error))
+            while (HttpManager.requestGet(string.Format(URL_MOVIES, index, "true", "", "", ""), null, ref buffer, ref error))
             {
-                Regex rgxMovies = new Regex("<li(.*?)</li>", RegexOptions.Singleline);
-
-                if (!rgxMovies.IsMatch(responseData))
-                    break;
-
-                foreach (Match match in rgxMovies.Matches(responseData))
+                foreach (string li in buffer.MatchRegexs("<li.*?</li>", false, true))
                 {
                     string itemError = string.Empty;
 
-                    if (!addParseHtmlMovie(match.Value, ref movies, ref itemError))
+                    if (!addParseHtmlMovie(li, ref movies, ref itemError))
                         logPelispedia("ERROR", itemError);
 
                     index++;
@@ -61,7 +55,7 @@ namespace WebScrapper.Scrappers.Pelispedia
 
                 { // sacar
                     //break;
-                    if (index > 200) break;
+                    if (index > 1200) break;
                 }
             }
 
@@ -115,42 +109,22 @@ namespace WebScrapper.Scrappers.Pelispedia
         {
             try
             {
-                Regex rgxUrl = new Regex("<a(.*?)</a>", RegexOptions.Singleline);
+                string url_web      = htmlCode.MatchRegex("<a href=\"([^\"]*)\" alt=");
+                string title        = htmlCode.MatchRegex("<h2 class=\"mb10\">([^<]*)<br><span");
+                string url_image    = htmlCode.MatchRegex("url=(https://[^\"]*)\" alt=");
+                string description  = htmlCode.MatchRegex("<p class=\"font12\">([^<]*)</p>");
 
-                if (!rgxUrl.IsMatch(htmlCode))
-                    throw new Exception("ErrorCode 0001");
+                if (url_web.Length == 0)
+                    throw new Exception("Url web not found");
 
-                string aux = rgxUrl.Match(htmlCode).Value.Replace("\n", "");
+                if (title.Length == 0)
+                    throw new Exception("Title not found");
 
-                rgxUrl = new Regex("href=\"[^\"]+\"", RegexOptions.IgnoreCase);
+                if (url_image.Length == 0)
+                    throw new Exception("Url image not found");
 
-                if (!rgxUrl.IsMatch(aux))
-                    throw new Exception("ErrorCode 0002");
-
-                string url_web = rgxUrl.Match(aux).Value.Split("\"".ToCharArray())[1];
-
-                Regex rgxImage = new Regex("src=\"[^\"]+\"", RegexOptions.IgnoreCase);
-
-                if (!rgxImage.IsMatch(aux))
-                    throw new Exception("ErrorCode 0003");
-
-                aux = rgxImage.Match(aux).Value.Split("\"".ToCharArray())[1];
-
-                string url_image = aux.Substring(aux.IndexOf("url=") + 4);
-
-                Regex rgxTitle = new Regex("<h2(.*?)<br>", RegexOptions.Singleline);
-
-                if (!rgxTitle.IsMatch(htmlCode))
-                    throw new Exception("ErrorCode 0004");
-
-                string title = rgxTitle.Match(htmlCode).Value.Split("<>".ToCharArray())[2];
-
-                Regex rgxDescription = new Regex("<p(.*?)</p>", RegexOptions.Singleline);
-
-                if (!rgxDescription.IsMatch(htmlCode))
-                    throw new Exception("ErrorCode 0005");
-
-                string description = rgxDescription.Match(htmlCode).Value.Split("<>".ToCharArray())[2];
+                if (description.Length == 0)
+                    throw new Exception("Description not found");
 
                 Movie movie = new Movie(HelperMD5.calculateHashMD5(url_web));
 

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text.RegularExpressions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Commons.CustomHttpManager;
 using WebScrapper.Cryptography;
 
@@ -10,22 +8,10 @@ namespace WebScrapper.Scrappers.Pelispedia
     {
         public static bool getKeyMovie (string url, string buffer, ref string keyMovie, ref string error)
         {
-            try
-            {
-                Regex rgx = new Regex("api/iframes.php[?]id=[0-9]+", RegexOptions.IgnoreCase);
+            keyMovie = buffer.MatchRegex("<iframe src=\"https://www.pelispedia.tv/api/iframes.php\\?id=([^\\?]*)\\?nocache");
 
-                if (!rgx.IsMatch(buffer))
-                    throw new Exception("No se encontró el iframe de reproduccion (url = " + url + ")");
-
-                keyMovie = rgx.Match(buffer).Value.Split('=')[1];
-            }
-            catch (Exception ex)
-            {
-                error = ex.Message;
-            }
-
-            if (error.Length > 0)
-                error = "getKeyMovie -> " + error;
+            if (keyMovie.Length == 0)
+                error = "getKeyMovie -> Key not found";
 
             return (0 == error.Length);
         }
@@ -47,55 +33,27 @@ namespace WebScrapper.Scrappers.Pelispedia
 
         public static bool getSources (string buffer, ref List<string> sources, ref string error)
         {
-            try
-            {
-                Regex rgxOptions = new Regex(
-                    "<a href=\"((https://load.pelispedia.vip/embed)|(https://pelispedia.stream/)).+>",
-                    RegexOptions.IgnoreCase
-                );
+            string[] links1 = buffer.MatchRegexs("<a href=\"(https://load.pelispedia.vip/embed[^\"]*)\"");
+            string[] links2 = buffer.MatchRegexs("<a href=\"(https://pelispedia.stream[^\"]*)\"");
 
-                if (!rgxOptions.IsMatch(buffer))
-                    throw new Exception("No se encontraron fuentes para la película");
+            foreach (string link in links1)
+                sources.Add(link);
 
-                foreach (Match optionMatch in rgxOptions.Matches(buffer))
-                {
-                    string link = optionMatch.Value.Split('\"')[1];
+            foreach (string link in links2)
+                sources.Add(link);
 
-                    if (!link.StartsWith("https:"))
-                        link = "https:" + link;
-
-                    sources.Add(link);
-                }
-            }
-            catch (Exception ex)
-            {
-                error = ex.Message;
-            }
-
-            if (error.Length > 0)
-                error = "getSources -> " + error;
+            if (sources.Count == 0)
+                error = "getSources -> Source not found";
 
             return (0 == error.Length);
         }
 
         public static bool getCode (string buffer, ref string code, ref string error)
         {
-            try
-            {
-                Regex rgx = new Regex("<meta name=\"google-site-verification.+>", RegexOptions.IgnoreCase);
+            code = buffer.MatchRegex("<meta name=\"google-site-verification\" content=(\"[^\"]*\")>");
 
-                if (!rgx.IsMatch(buffer))
-                    throw new Exception("No se encontró el codigo de la película.");
-
-                code = "\"" + rgx.Match(buffer).Value.Split('\"')[3] + "\"";
-            }
-            catch (Exception ex)
-            {
-                error = ex.Message;
-            }
-
-            if (error.Length > 0)
-                error = "getCode -> " + error;
+            if (code.Length == 0)
+                error = "getCode -> Code not found";
 
             return (0 == error.Length);
         }

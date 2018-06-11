@@ -24,12 +24,12 @@ namespace Scrapper
 
         static void Main (string[] args)
         {
-            string error = string.Empty;
+            //string error = string.Empty;
 
-            string connectionString = string.Format("Data Source={0};Initial Catalog={1};User id={2};Password={3};Application Name=SsnService;MultipleActiveResultSets=True",
-                "gozgvm.ddns.net", "VideoScrapDB", "usr_test", "logica22s1$");
+            //string connectionString = string.Format("Data Source={0};Initial Catalog={1};User id={2};Password={3};Application Name=SsnService;MultipleActiveResultSets=True",
+            //    "gozgvm.ddns.net", "VideoScrapDB", "usr_test", "logica22s1$");
 
-            Commons.CustomDatabaseManager.CustomDatabase.ejecutar(connectionString, "select * from testtable", ref error);
+            //Commons.CustomDatabaseManager.CustomDatabase.ejecutar(connectionString, "select * from testtable", ref error);
         }
     }
 }

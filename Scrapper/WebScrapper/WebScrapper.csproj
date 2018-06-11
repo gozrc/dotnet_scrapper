@@ -34,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -43,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config.cs" />
     <Compile Include="Cryptography\HelperAES.cs" />
     <Compile Include="Cryptography\HelperMD5.cs" />
     <Compile Include="Entities\Episode.cs" />
@@ -54,14 +56,17 @@
     <Compile Include="Entities\Serie.cs" />
     <Compile Include="Entities\Series.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="Persistence\DbPersistence.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scrappers\IWebScrapper.cs" />
     <Compile Include="Scrappers\Pelispedia\PelispediaHelper.cs" />
     <Compile Include="Scrappers\Pelispedia\ScrapPelispedia.cs" />
+    <Compile Include="Scrappers\ScrapperLogEventArgs.cs" />
     <Compile Include="Servers\IServerScrapper.cs" />
     <Compile Include="Servers\ServerFactory.cs" />
     <Compile Include="Servers\ServerScrapper.cs" />
+    <Compile Include="Servers\ServerScrapperFastPlay.cs" />
     <Compile Include="Servers\ServerScrapperOpenload.cs" />
     <Compile Include="Servers\ServerScrapperRapidvideo.cs" />
     <Compile Include="Servers\ServerScrapperStreamango.cs" />

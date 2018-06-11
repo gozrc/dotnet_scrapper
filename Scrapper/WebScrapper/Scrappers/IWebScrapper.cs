@@ -5,6 +5,8 @@ namespace WebScrapper.Scrappers
 {
     public abstract class IWebScrapper
     {
+        public event ScrapperLogEventHandler onLog;
+
         public abstract Movies scrapMovies ();
         public abstract Series scrapSeries ();
 
@@ -19,6 +21,12 @@ namespace WebScrapper.Scrappers
             );
 
             Console.WriteLine(text);
+        }
+
+
+        protected void runOnLog (string scrapperName, string title, string description)
+        {
+            onLog?.Invoke(scrapperName + " :: " + title, description);
         }
     }
 }
