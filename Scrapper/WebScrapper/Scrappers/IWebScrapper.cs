@@ -1,13 +1,23 @@
 ﻿using System;
 using WebScrapper.Entities;
+using WebScrapper.Servers;
 
 namespace WebScrapper.Scrappers
 {
     public abstract class IWebScrapper
     {
-        public event ScrapperLogEventHandler onLog;
+        public event ScrapperLogEventHandler    onLog;
+        public event ScrapperMovieEventHandler  onMovie;
 
-        public abstract Movies scrapMovies ();
+
+        public abstract string name ();
+
+        public abstract void scrapMovies ();
+
+        public abstract void getMovieSources (string urlMovie, ref Sources sources);
+
+
+
         public abstract Series scrapSeries ();
 
         protected void log (string scrapper, string title, string detail)
@@ -27,6 +37,11 @@ namespace WebScrapper.Scrappers
         protected void runOnLog (string scrapperName, string title, string description)
         {
             onLog?.Invoke(scrapperName + " :: " + title, description);
+        }
+
+        protected void runOnMovie (Movie movie)
+        {
+            onMovie?.Invoke(movie);
         }
     }
 }

@@ -2,9 +2,9 @@
 
 namespace WebScrapper.Scrappers
 {
-    public delegate void ScrapperLogEventHandler(string title, string description);
+    public delegate void ScrapperLogEventHandler (string title, string description);
 
-    public class ScrapperLogEventArgs
+    public class ScrapperLogEventArgs : EventArgs
     {
         public readonly string title        = string.Empty;
         public readonly string description  = string.Empty;

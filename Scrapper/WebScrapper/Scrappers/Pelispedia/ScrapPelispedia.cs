@@ -10,102 +10,93 @@ namespace WebScrapper.Scrappers.Pelispedia
     public class ScrapPelispedia : IWebScrapper
     {
         const string URL_MOVIES = "https://www.pelispedia.tv/api/morex.php?rangeStart={0}&flagViewMore={1}&letra={2}&year={3}&genre={4}";
-        
 
-        public override Movies scrapMovies ()
+        public override string name ()
         {
-            Movies movies = new Movies();
-
-            getMovieTitles (ref movies);
-
-            for (int k = 0; k < movies.Count; k++)
-            {
-                Movie movie = movies[k];
-                getMovieSources (ref movie);
-                Console.WriteLine(" {0}", k + 1);
-            }
-
-            return movies;
+            return "PELISPEDIA";
         }
 
 
-        void getMovieTitles (ref Movies movies)
+        public override void scrapMovies ()
         {
-            int    index  = 1000;
+            int    index  = 0;
             string buffer = string.Empty;
             string error  = string.Empty;
 
             while (HttpManager.requestGet(string.Format(URL_MOVIES, index, "true", "", "", ""), null, ref buffer, ref error))
             {
-                foreach (string li in buffer.MatchRegexs("<li.*?</li>", false, true))
-                {
-                    string itemError = string.Empty;
+                string[] movies = buffer.MatchRegexs("<li.*?</li>", false, true);
 
-                    if (!addParseHtmlMovie(li, ref movies, ref itemError))
-                        logPelispedia("ERROR", itemError);
+                if (movies.Length == 0)
+                    break;
+
+                foreach (string li in movies)
+                {
+                    string errorItem = string.Empty;
+                    Movie  movie     = null;
+
+                    if (createMovie(li, ref movie, ref errorItem))
+                    {
+                        getMovieSources (movie.url_web, ref movie.sources);
+                        runOnMovie      (movie);
+                    }
+                    else
+                    {
+                        runOnLog (name(), "ERROR", error);
+                    }
 
                     index++;
-
-                    { // sacar
-                        Console.WriteLine("[{0:0000}] Title: {1}", index, movies[movies.Count - 1].title);
-                        //break;
-                        //if (index == 200) break;
-                    }
-                }
-
-                { // sacar
-                    //break;
-                    if (index > 1200) break;
                 }
             }
 
             if (error.Length > 0)
-                logPelispedia ("ERROR", "getMovieTitles -> " + error);
+                runOnLog (name(), "ERROR", error);
         }
 
-        public void getMovieSources (ref Movie movie)
+        public override void getMovieSources (string urlMovie, ref Sources sources)
         {
             string       buffer          = string.Empty;
             string       keyMovie        = string.Empty;
-            List<string> sources         = new List<string>();
-            string       error           = string.Empty;
+            List<string> lSources        = new List<string>();
             string       urlDecoded      = string.Empty;
+            string       error           = string.Empty;
 
             if (0 == error.Length)
-                HttpManager.requestGet(movie.url_web, null, ref buffer, ref error);
+                HttpManager.requestGet(urlMovie, null, ref buffer, ref error);
 
             if (0 == error.Length)
-                PelispediaHelper.getKeyMovie(movie.url_web, buffer, ref keyMovie, ref error);
+                PelispediaHelper.getKeyMovie(urlMovie, buffer, ref keyMovie, ref error);
 
             if (0 == error.Length)
-                PelispediaHelper.getUrlOptions(movie.url_web, keyMovie, ref buffer, ref error);
+                PelispediaHelper.getUrlOptions(urlMovie, keyMovie, ref buffer, ref error);
 
             if (0 == error.Length)
-                PelispediaHelper.getSources(buffer, ref sources, ref error);
+                PelispediaHelper.getSources(buffer, ref lSources, ref error);
 
             if (0 == error.Length)
             {
-                foreach (string source in sources)
+                foreach (string source in lSources)
                 {
                     if (source.StartsWith("https://load.pelispedia.vip/embed"))
                     {
                         error = string.Empty;
 
                         if (decodeSource(source, ref urlDecoded, ref error))
-                            ServerScrapper.scrap(urlDecoded, ref movie.sources, ref error);
+                            ServerScrapper.scrap(urlDecoded, ref sources, ref error);
 
                         if (error.Length > 0)
-                            logPelispedia ("ERROR", string.Format("[{0}] {1}", movie.title, error));
+                            runOnLog (name(), "ERROR (" + urlMovie + ")", error);
                     }
                 }
             }
             else
             {
-                logPelispedia ("ERROR", string.Format("[{0}] {1}", movie.title, error));
+                runOnLog (name(), "ERROR (" + urlMovie + ")", error);
             }
         }
 
-        bool addParseHtmlMovie (string htmlCode, ref Movies movies, ref string error)
+
+        bool createMovie (string htmlCode, ref Movie movie, ref string error)
         {
             try
             {
@@ -126,18 +117,16 @@ namespace WebScrapper.Scrappers.Pelispedia
                 if (description.Length == 0)
                     throw new Exception("Description not found");
 
-                Movie movie = new Movie(HelperMD5.calculateHashMD5(url_web));
+                movie = new Movie(HelperMD5.calculateHashMD5(url_web));
 
                 movie.title       = title;
                 movie.url_image   = url_image;
                 movie.url_web     = url_web;
                 movie.description = description;
-
-                movies.Add (movie);
             }
             catch (Exception ex)
             {
-                error = "addParseHtmlMovie -> " + ex.Message;
+                error = "createMovie -> " + ex.Message;
             }
 
             return (0 == error.Length);
@@ -211,45 +200,6 @@ namespace WebScrapper.Scrappers.Pelispedia
         public override Series scrapSeries ()
         {
             throw new NotImplementedException();
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        void logPelispedia (string title, string detail)
-        {
-            log ("pelispedia", title, detail);
         }
     }
 }

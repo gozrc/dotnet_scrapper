@@ -63,6 +63,7 @@
     <Compile Include="Scrappers\Pelispedia\PelispediaHelper.cs" />
     <Compile Include="Scrappers\Pelispedia\ScrapPelispedia.cs" />
     <Compile Include="Scrappers\ScrapperLogEventArgs.cs" />
+    <Compile Include="Scrappers\ScrapperMovieEventArgs.cs" />
     <Compile Include="Servers\IServerScrapper.cs" />
     <Compile Include="Servers\ServerFactory.cs" />
     <Compile Include="Servers\ServerScrapper.cs" />

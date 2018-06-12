@@ -8,6 +8,7 @@ using Commons.CustomHttpManager;
 using WebScrapper.Entities;
 using WebScrapper.Scrappers;
 using WebScrapper.Scrappers.Pelispedia;
+using WebScrapper.Servers;
 using Commons.CustomDatabaseManager;
 
 namespace WebScrapper
@@ -21,38 +22,51 @@ namespace WebScrapper
             // ---------------------------------------------------------------
 
             // ---------------------------------------------------------------
-            //testearPelicula("https://www.pelispedia.tv/pelicula/ibiza/", "Ibiza");
+            //testearPelicula ("https://www.pelispedia.tv/pelicula/ibiza/");
             //testearPelicula("https://www.pelispedia.tv/pelicula/entre-sombras/", "Entre Sombras");
-            //Console.ReadKey();
-            //return;
             // ---------------------------------------------------------------
 
             // ---------------------------------------------------------------
             IWebScrapper scrapper = new ScrapPelispedia();
-            Movies movies = scrapper.scrapMovies();
 
-            foreach (Movie m in movies)
-            {
-                //Console.WriteLine();
-                Console.WriteLine(m.title + " " + m.sources.Count().ToString());
+            scrapper.onLog   += Scrapper_onLog;
+            scrapper.onMovie += Scrapper_onMovie;
 
-                //foreach (WebScrapper.Servers.Source s in m.sources)
-                //    Console.WriteLine("\t" + s.name_server + " " + s.description);
-            }
+            scrapper.scrapMovies ();
             // ---------------------------------------------------------------
 
             Console.ReadKey();
         }
 
-        static void testearPelicula (string urlPelicula, string title)
-        {
-            Movie m = new Movie("id");
-            m.url_web = urlPelicula;
-            m.title = title;
 
-            ScrapPelispedia s = new ScrapPelispedia();
-            s.getMovieSources(ref m);
+        static void testearPelicula (string urlPelicula)
+        {
+            IWebScrapper scrapper = new ScrapPelispedia();
+
+            scrapper.onLog += Scrapper_onLog;
+
+            Sources sources = new Sources();
+
+            scrapper.getMovieSources(urlPelicula, ref sources);
+
+            foreach (Source s in sources)
+                Console.WriteLine("{0} {1}", s.name_server, s.url_source);
         }
+
+        static void Scrapper_onLog (string title, string description)
+        {
+            log ("ERROR", title + " - " + description);
+        }
+
+        static void Scrapper_onMovie (Movie movie)
+        {
+            log ("INFO", "");
+            log ("INFO", movie.title);
+
+            foreach (Source s in movie.sources)
+                log ("INFO", "   " + s.name_server);
+        }
+
 
         static void testearBaseDeDatos ()
         {
@@ -73,6 +87,18 @@ namespace WebScrapper
 
             if (error.Length > 0)
                 Console.WriteLine(error);
+        }
+
+        static void log (string title, string description)
+        {
+            string text = string.Format(
+                "[{0}] :: {1} :: {2}",
+                DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"),
+                title,
+                description
+            );
+
+            Console.WriteLine(text);
         }
     }
 }
