@@ -46,7 +46,7 @@ namespace WebScrapper.Persistence
             StringBuilder sb = new StringBuilder();
 
             sb.Append ("SELECT ");
-            sb.Append ("    url_web ");
+            sb.Append ("    id_movie ");
             sb.Append ("FROM ");
             sb.Append ("    Movies ");
             sb.Append ("WHERE ");

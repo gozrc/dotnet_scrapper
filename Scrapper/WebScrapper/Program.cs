@@ -53,21 +53,6 @@ namespace WebScrapper
                 Console.WriteLine("{0} {1}", s.name_server, s.url_source);
         }
 
-        static void Scrapper_onLog (string title, string description)
-        {
-            log ("ERROR", title + " - " + description);
-        }
-
-        static void Scrapper_onMovie (Movie movie)
-        {
-            log ("INFO", "");
-            log ("INFO", movie.title);
-
-            foreach (Source s in movie.sources)
-                log ("INFO", "   " + s.name_server);
-        }
-
-
         static void testearBaseDeDatos ()
         {
             string error = string.Empty;
@@ -99,6 +84,83 @@ namespace WebScrapper
             );
 
             Console.WriteLine(text);
+        }
+
+
+
+        static void Scrapper_onLog (string title, string description)
+        {
+            log ("ERROR", title + " - " + description);
+
+            //----------------------------------------------
+
+            string error = string.Empty;
+
+            CustomDatabase customDb = new CustomDatabase(
+                Config.dbServer, Config.dbName, Config.dbUser, Config.dbPassword);
+
+            if (customDb.open(ref error))
+            {
+                string sql = Persistence.DbPersistence.sqlInsertAudit(
+                    title, description, DateTime.Now);
+
+                customDb.execute (sql, ref error);
+            }
+
+            customDb.close ();
+
+            if (error.Length > 0)
+                log ("DATABASE", error);
+        }
+
+        static void Scrapper_onMovie (Movie movie)
+        {
+            log ("INFO", "");
+            log ("INFO", movie.title);
+
+            foreach (Source s in movie.sources)
+                log ("INFO", "   " + s.name_server);
+
+            //----------------------------------------------
+
+            string error = string.Empty;
+
+            CustomDatabase customDb = new CustomDatabase(
+                Config.dbServer, Config.dbName, Config.dbUser, Config.dbPassword);
+
+            if (customDb.open(ref error))
+            {
+                string sql = Persistence.DbPersistence.sqlInsertMovie(
+                    movie.title, movie.description, movie.url_image, movie.url_web, DateTime.Now);
+
+                if (customDb.execute (sql, ref error))
+                {
+                    sql = Persistence.DbPersistence.sqlSelectMovie(movie.url_web);
+                    int id_movie = 0;
+
+                    if (customDb.executeScalar(sql, ref id_movie, ref error))
+                    {
+                        foreach (Source s in movie.sources)
+                        {
+                            string hash = Cryptography.HelperMD5.calculateHashMD5(s.url_source);
+
+                            sql = Persistence.DbPersistence.sqlInsertSource(
+                                id_movie, s.name_server, s.url_source, s.url_subtitles, s.description, hash, DateTime.Now);
+
+                            if (!customDb.execute (sql, ref error))
+                                log("DATABASE", error);
+
+                            error = string.Empty;
+                        }
+
+                    }
+                }
+            }
+
+            customDb.close ();
+
+            if (error.Length > 0)
+                log ("DATABASE", error);
         }
     }
 }

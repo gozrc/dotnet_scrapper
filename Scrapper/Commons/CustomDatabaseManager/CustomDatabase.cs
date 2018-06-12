@@ -155,6 +155,27 @@ namespace Commons.CustomDatabaseManager
             return (0 == error.Length);
         }
 
+        public bool executeScalar (string sql, ref int response, ref string error)
+        {
+            if (0 == error.Length)
+                canExecut(ref error);
+
+            if (0 == error.Length)
+            {
+                try
+                {
+                    SqlCommand cmd = new SqlCommand(sql, connection);
+                    response = (int)cmd.ExecuteScalar();
+                }
+                catch (Exception ex)
+                {
+                    error = "CustomDatabase.executeScalar -> " + ex.Message;
+                }
+            }
+
+            return (0 == error.Length);
+        }
+
         public void addParameter (ref List<SqlParameter> parameters, string name, SqlDbType type, object value)
         {
             SqlParameter parameter = new SqlParameter(name, type);
